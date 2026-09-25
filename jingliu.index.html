@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<!-- saved from url=(0239)https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&rcl=20260925172331497B6D4589445D10C1FE&rrcfp=f512b60b&x-expires=1791624235&x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模组·静流之谜</title>
+<link rel="stylesheet" href="./jingliu.index_files/css2">
+<style>
+/* ============================================================
+   设计 token —— 仿书页视觉
+   纸：米白纸张 + 旧纸斑驳
+   墨：深棕墨色
+   强调：宝可梦红 + 原野绿
+   签名元素：书页 / 书脊 / 章首装饰 / 页码
+   ============================================================ */
+:root{
+  --paper:#f4ecda;
+  --paper-deep:#eaddc0;
+  --paper-edge:#fbf6ea;
+  --ink:#3b3226;
+  --ink-soft:#6b5d4a;
+  --ink-faint:#978a72;
+  --accent:#c33a2b;      /* 宝可梦红 */
+  --accent-deep:#8e2b20;
+  --leaf:#4e7d4a;        /* 原野绿 */
+  --line:#d8c9a8;
+  --shadow:rgba(84,66,34,.28);
+  --serif:"Noto Serif SC", "Songti SC", "SimSun", "STSong", serif;
+  --sans:"Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:#d9c9a8;
+  background-image:
+    radial-gradient(ellipse at 20% 10%, rgba(255,252,240,.55), transparent 55%),
+    radial-gradient(ellipse at 85% 90%, rgba(120,96,58,.35), transparent 55%),
+    repeating-linear-gradient(90deg, rgba(90,70,40,.025) 0 2px, transparent 2px 90px);
+  color:var(--ink);
+  font-family:var(--serif);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -webkit-user-select:text;
+  user-select:text;
+}
+/* 选中文字高亮（仿书页的朱砂色） */
+::selection{background:rgba(196,30,58,.18);color:inherit}
+::-moz-selection{background:rgba(196,30,58,.18);color:inherit}
+/* 纸张纹理 */
+.paper-grain::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:
+    radial-gradient(rgba(120,96,58,.12) 1px, transparent 1.4px);
+  background-size:7px 7px;
+  mix-blend-mode:multiply;
+}
+
+/* ================= 书壳 ================= */
+.book-shell{
+  max-width:1080px;margin:0 auto;padding:36px 16px 64px;
+}
+.book-topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 4px 18px;
+}
+.book-title-mini{
+  font-size:13px;letter-spacing:.22em;color:var(--ink-soft);
+  display:flex;align-items:center;gap:10px;
+}
+.book-title-mini svg{width:16px;height:16px;stroke:var(--accent);fill:none;stroke-width:1.6}
+.book-controls{display:flex;align-items:center;gap:10px}
+
+/* 书页舞台 */
+.stage{
+  position:relative;
+  perspective:2200px;
+}
+.page-wrap{
+  position:relative;
+  transform-style:preserve-3d;
+}
+.page{
+  position:absolute;inset:0;
+  visibility:hidden;opacity:0;transform:translateX(0);
+  transition:opacity .5s ease, transform .55s ease;
+  transform-style:preserve-3d;
+}
+.page.active{visibility:visible;opacity:1;transform:translateX(0)}
+.page.anim-left{transform:translateX(-40px)}
+.page.anim-right{transform:translateX(40px)}
+
+.leaf{
+  position:relative;
+  background:var(--paper);
+  background-image:
+    linear-gradient(90deg, rgba(140,115,70,.14), transparent 3.2%),
+    radial-gradient(ellipse at 12% 0%, rgba(255,250,235,.7), transparent 55%),
+    radial-gradient(ellipse at 95% 100%, rgba(160,135,90,.16), transparent 50%);
+  border:1px solid var(--line);
+  border-radius:3px 8px 8px 3px;
+  box-shadow:
+    inset 3px 0 6px -4px rgba(90,70,40,.4),
+    inset -2px 0 4px -3px rgba(90,70,40,.25),
+    0 30px 60px -18px var(--shadow),
+    0 8px 22px -10px var(--shadow);
+  padding:44px 54px 40px 62px;
+  min-height:620px;
+}
+.leaf::after{ /* 书脊高光 */
+  content:"";position:absolute;left:0;top:0;bottom:0;width:14px;
+  background:linear-gradient(90deg, rgba(90,70,40,.22), rgba(90,70,40,.05) 70%, transparent);
+}
+.leaf::before{ /* 纸张边缘 */
+  content:"";position:absolute;left:15px;top:8px;bottom:8px;width:1px;
+  background:rgba(120,96,58,.35);
+}
+
+/* 页码 */
+.folio{
+  position:absolute;bottom:22px;right:40px;
+  font-size:13px;color:var(--ink-faint);letter-spacing:.14em;
+  font-family:var(--sans);
+}
+.folio b{color:var(--ink-soft);font-weight:500}
+
+/* 翻页导航 */
+.page-nav{
+  display:flex;align-items:center;justify-content:center;gap:18px;
+  margin-top:26px;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:8px;
+  background:transparent;border:1px solid var(--line);border-radius:999px;
+  padding:9px 18px;cursor:pointer;color:var(--ink);
+  font-family:var(--serif);font-size:14px;letter-spacing:.1em;
+  transition:background .25s, border-color .25s, transform .15s;
+  background:rgba(244,236,218,.7);
+}
+.nav-btn:hover{background:var(--paper-edge);border-color:#c4ae85;transform:translateY(-1px)}
+.nav-btn:disabled{opacity:.35;cursor:default;transform:none}
+.nav-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7}
+.page-dots{display:flex;gap:6px;flex-wrap:wrap;max-width:46vw;justify-content:center}
+.dot{width:7px;height:7px;border-radius:50%;background:#cbb98f;cursor:pointer;transition:transform .2s, background .2s;border:none;padding:0}
+.dot:hover{transform:scale(1.35)}
+.dot.on{background:var(--accent);transform:scale(1.3)}
+.dot.chap{background:#a88f5c}
+
+/* ================= 版式 ================= */
+.chap-mark{
+  display:flex;align-items:center;gap:12px;margin-bottom:22px;
+}
+.chap-mark .rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line), transparent)}
+.chap-mark .tick{
+  font-size:12px;letter-spacing:.3em;color:var(--accent);font-family:var(--sans);font-weight:500;
+}
+h1.chap-title{
+  font-size:30px;line-height:1.35;font-weight:900;letter-spacing:.06em;color:var(--accent-deep);
+  margin-bottom:8px;
+}
+h2.sub-title{
+  font-size:17px;font-weight:600;color:var(--ink);letter-spacing:.05em;
+  margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:8px;
+}
+h2.sub-title::before{content:"";width:7px;height:7px;background:var(--accent);transform:rotate(45deg);flex:none}
+h3.mini-title{
+  font-size:15px;font-weight:700;color:var(--accent-deep);margin:20px 0 8px;letter-spacing:.04em;
+}
+p{font-size:15.5px;line-height:1.95;margin-bottom:12px;text-align:justify;color:var(--ink)}
+p.lead{font-size:16px;color:var(--ink-soft)}
+strong{color:var(--ink);font-weight:700}
+.em-green{color:#3f6b3c;font-weight:700}
+.cg{
+  display:block;margin:16px 0;padding:14px 18px 14px 22px;
+  background:rgba(150,170,140,.16);border-left:3px solid #7d9a74;
+  color:#41513c;font-size:14.5px;line-height:1.9;border-radius:0 6px 6px 0;
+  position:relative;
+}
+.cg::before{content:"景";position:absolute;left:-1px;top:-1px;font-size:10px;letter-spacing:.1em;color:#6f8a66;font-family:var(--sans)}
+.quote{
+  margin:14px 0;padding:12px 18px;border-left:3px solid var(--accent);
+  background:rgba(195,58,43,.06);font-size:15px;line-height:1.9;color:#5a4636;
+}
+.quote .who{display:block;margin-top:6px;font-size:12.5px;color:var(--ink-faint);letter-spacing:.08em}
+
+/* 地图图框 */
+.map-figure{
+  margin:14px 0;padding:10px;background:#fffdf5;border:1px solid var(--line);
+  border-radius:10px;text-align:center;box-shadow:0 4px 14px rgba(80,60,30,.1);
+}
+.map-figure img{
+  display:block;width:100%;max-width:560px;margin:0 auto;border-radius:6px;
+}
+.map-figure figcaption{
+  margin-top:8px;font-size:12.5px;color:var(--ink-faint);letter-spacing:.1em;font-family:var(--sans);
+}
+
+ul.list{list-style:none;margin:10px 0 16px}
+ul.list li{
+  position:relative;padding-left:22px;margin-bottom:9px;
+  font-size:15px;line-height:1.85;color:var(--ink);
+}
+ul.list li::before{
+  content:"";position:absolute;left:2px;top:.72em;width:9px;height:9px;
+  border:1.5px solid var(--accent);border-radius:50%;
+}
+ul.list li b{color:var(--accent-deep)}
+ol.nlist{margin:10px 0 16px;padding-left:22px}
+ol.nlist li{font-size:15px;line-height:1.85;margin-bottom:8px;color:var(--ink)}
+
+/* 规则卡 */
+.rule-card{
+  border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin:16px 0;
+  background:rgba(250,244,228,.55);
+}
+.rule-card h4{font-size:14px;letter-spacing:.12em;color:var(--accent-deep);margin-bottom:10px;font-family:var(--sans)}
+.rule-card p{font-size:14.5px;margin-bottom:8px}
+.rule-card p:last-child{margin-bottom:0}
+
+/* 信息表（封面） */
+.meta-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px 26px;margin:20px 0;
+}
+.meta-item{display:flex;gap:12px;align-items:baseline;font-size:14.5px}
+.meta-item .k{flex:none;font-size:12.5px;letter-spacing:.14em;color:var(--ink-faint);font-family:var(--sans);width:64px}
+.meta-item .v{color:var(--ink)}
+.meta-item .v.hot{color:var(--accent);font-weight:700}
+
+/* 表格 */
+table.tbl{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+.tbl th{background:rgba(200,180,140,.25);color:var(--accent-deep);font-weight:600;padding:8px 12px;text-align:left;border:1px solid var(--line);font-family:var(--sans);letter-spacing:.05em}
+.tbl td{border:1px solid var(--line);padding:8px 12px;line-height:1.7;color:var(--ink);vertical-align:top}
+
+/* 遭遇标签 */
+.tag{
+  display:inline-block;font-size:11.5px;font-family:var(--sans);letter-spacing:.1em;
+  padding:2px 10px;border-radius:999px;margin-right:6px;vertical-align:middle;
+}
+.tag.normal{background:#e8e2cf;color:#6b5d4a;border:1px solid #d5c9a8}
+.tag.rare{background:#dbe6f2;color:#3a5f8a;border:1px solid #b7cde2}
+.tag.epic{background:#f3dcd2;color:#a04a2f;border:1px solid #e5b9a4}
+
+/* 怪物/物品条目 */
+.entry{
+  border:1px solid var(--line);border-radius:8px;margin:14px 0;overflow:hidden;
+  background:rgba(250,244,228,.5);
+}
+.entry summary{
+  cursor:pointer;padding:13px 18px;list-style:none;
+  display:flex;align-items:center;gap:12px;
+  font-weight:700;font-size:15px;color:var(--ink);
+}
+.entry summary::-webkit-details-marker{display:none}
+.entry summary::before{
+  content:"+";display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;
+  font-size:14px;font-family:var(--sans);flex:none;transition:transform .25s;
+}
+.entry[open] summary::before{content:"–";transform:rotate(180deg)}
+.entry .body{padding:2px 20px 16px;border-top:1px dashed var(--line)}
+.entry .body p{font-size:14px;margin-bottom:7px}
+.entry .body .lab{font-family:var(--sans);font-size:12px;letter-spacing:.12em;color:var(--ink-faint);margin:10px 0 4px}
+/* 物品一键复制 */
+.cpy-btn{
+  margin-left:auto;flex:none;font-family:var(--sans);font-size:12px;
+  padding:4px 13px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(244,236,218,.85);color:var(--accent);cursor:pointer;
+  transition:background .2s, transform .15s;letter-spacing:.08em;
+}
+.cpy-btn:hover{background:var(--paper-edge);border-color:#c4ae85}
+.cpy-btn:active{transform:translateY(1px)}
+
+/* 目录（一级/二级树形） */
+.toc-list{list-style:none;margin-top:6px}
+.toc-group{margin-bottom:4px}
+.toc-l1{
+  display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--accent-deep);
+  padding:15px 12px;border-radius:8px;cursor:pointer;transition:background .2s;
+  font-weight:800;font-size:17px;letter-spacing:.06em;
+  border-bottom:1px dashed rgba(160,135,90,.4);
+}
+.toc-l1:hover{background:rgba(200,180,140,.22)}
+.toc-l1:active{background:rgba(200,180,140,.3)}
+.toc-l1 .arrow{
+  flex:none;width:0;height:0;border-left:9px solid var(--accent);border-top:6px solid transparent;
+  border-bottom:6px solid transparent;transition:transform .25s;margin-right:2px;
+}
+.toc-group.open .toc-l1 .arrow{transform:rotate(90deg)}
+.toc-l1 .pg{margin-left:auto;font-size:12.5px;color:var(--ink-faint);font-family:var(--sans);font-weight:400;letter-spacing:.05em}
+.toc-sub{list-style:none;padding:4px 0 8px 16px;display:none}
+.toc-group.open .toc-sub{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.toc-sub li{margin-bottom:2px}
+.toc-l2{
+  display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);
+  padding:11px 10px 11px 14px;border-radius:7px;transition:background .2s,color .2s;
+  font-size:14.5px;
+}
+.toc-l2:hover{background:rgba(200,180,140,.18);color:var(--accent-deep)}
+.toc-l2:active{background:rgba(200,180,140,.28)}
+.toc-l2 .tt{flex:1}
+.toc-l2 .pg{margin-left:auto;font-size:12px;color:var(--ink-faint);font-family:var(--sans);flex:none}
+.toc-l3{
+  display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink-soft);
+  padding:10px 8px 10px 26px;border-radius:7px;transition:background .2s,color .2s;
+  font-size:13.5px;
+}
+.toc-l3:hover{background:rgba(200,180,140,.16);color:var(--accent-deep)}
+.toc-l3:active{background:rgba(200,180,140,.26)}
+.toc-l3 .tt{flex:1}
+.toc-l3 .pg{margin-left:auto;font-size:11.5px;color:var(--ink-faint);font-family:var(--sans);flex:none}
+.toc-sub-l3{list-style:none;margin:2px 0 6px 10px;border-left:1px solid rgba(160,135,90,.3);padding-left:4px}
+
+/* 封面 */
+.cover{
+  text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:640px;
+}
+.cover-art{
+  width:100%;max-width:480px;border-radius:6px;margin:0 auto 26px;
+  border:1px solid var(--line);box-shadow:0 14px 34px -14px var(--shadow);
+  display:block;
+}
+.cover h1{
+  font-size:44px;font-weight:900;letter-spacing:.28em;color:var(--accent-deep);
+  text-indent:.28em;margin:6px 0 2px;
+}
+.cover .sub{font-size:14px;letter-spacing:.42em;color:var(--ink-soft);text-indent:.42em;margin-bottom:26px}
+.cover .seal{
+  width:92px;height:92px;border-radius:50%;border:2px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;margin:18px auto 0;
+  color:var(--accent);font-size:13px;letter-spacing:.22em;font-family:var(--sans);
+  transform:rotate(-8deg);opacity:.85;
+}
+.cover .cover-meta{margin-top:20px;font-size:13px;color:var(--ink-faint);letter-spacing:.14em;font-family:var(--sans);line-height:2.1}
+
+/* ================= 属性卡生成器 ================= */
+.gen-layout{
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:26px;align-items:start;
+}
+.form-col{min-width:0}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12.5px;letter-spacing:.1em;color:var(--ink-soft);font-family:var(--sans);margin-bottom:6px;font-weight:500}
+.field input[type=text],.field input[type=number],.field select{
+  width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:6px;
+  background:rgba(255,252,242,.85);color:var(--ink);font-family:var(--serif);font-size:14.5px;
+  transition:border-color .2s;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.type-pick{display:flex;flex-wrap:wrap;gap:7px}
+.type-chip{
+  font-size:12px;padding:5px 12px;border-radius:999px;cursor:pointer;border:1.5px solid var(--line);
+  font-family:var(--sans);color:var(--ink-soft);background:rgba(255,252,242,.7);transition:all .18s;
+  user-select:none;
+}
+.type-chip.sel{color:#fff;border-color:transparent;font-weight:600}
+
+/* 等级选择 */
+.level-pick{display:flex;gap:8px;margin:6px 0 8px}
+.lv-opt{flex:1;cursor:pointer;user-select:none}
+.lv-opt input{display:none}
+.lv-opt span{
+  display:block;text-align:center;padding:8px 0;border:1.5px solid var(--line);border-radius:8px;
+  font-size:13px;font-family:var(--sans);color:var(--ink-soft);background:rgba(255,252,242,.7);transition:all .18s;
+}
+.lv-opt input:checked + span{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.evolve-check{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-soft);font-family:var(--sans);cursor:pointer;margin-top:2px}
+.evolve-check input{accent-color:var(--accent)}
+
+/* 卡片右上角可进化标记 */
+.pc-evolve{
+  position:absolute;top:10px;right:12px;background:#c9a227;color:#fff;
+  font-size:10.5px;font-weight:700;letter-spacing:.1em;padding:3px 9px;border-radius:999px;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
+}
+.pc-head{position:relative}
+
+.mlist{margin:4px 0 12px}
+.mrow{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.mrow input{width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:6px;background:rgba(255,252,242,.85);font-size:14px;font-family:var(--serif)}
+.mrow input:focus{outline:none;border-color:var(--accent)}
+.mrow .rm{
+  width:30px;height:30px;border-radius:6px;border:1px solid #d8b9a8;background:#f7e8e0;color:#a04a2f;
+  cursor:pointer;font-size:14px;line-height:1;font-family:var(--sans);
+}
+.mrow .rm:hover{background:#f0d5c8}
+.add-btn{
+  padding:7px 16px;border:1px dashed var(--accent);border-radius:6px;background:transparent;
+  color:var(--accent);cursor:pointer;font-size:13px;font-family:var(--sans);letter-spacing:.06em;
+  transition:background .2s;
+}
+.add-btn:hover{background:rgba(195,58,43,.08)}
+.preset-ops{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 6px}
+.preset-note{font-size:12.5px;color:var(--ink-faint);margin:4px 0 8px;font-family:var(--sans)}
+
+/* 生成的卡 */
+.card-preview{position:sticky;top:16px}
+.poke-card{
+  background:#fffdf5;border:2px solid #3b3226;border-radius:14px;overflow:hidden;
+  box-shadow:0 18px 44px -16px var(--shadow);font-family:var(--sans);
+}
+.pc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;color:#fff;gap:10px;
+}
+.pc-head .nm{font-size:19px;font-weight:700;letter-spacing:.04em;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.pc-head .hp{font-size:14px;font-weight:600;white-space:nowrap}
+.pc-head .hp b{font-size:19px;font-weight:900}
+.pc-type{display:flex;gap:6px;margin-top:3px}
+.pc-type span{font-size:11px;background:rgba(255,255,255,.85);color:#3b3226;padding:2px 10px;border-radius:999px;font-weight:600}
+.pc-body{padding:14px 16px 16px}
+.pc-row{display:flex;gap:18px;margin-bottom:10px}
+.pc-cell{flex:1;background:#f4edda;border-radius:8px;padding:8px 12px}
+.pc-cell .k{font-size:10.5px;letter-spacing:.14em;color:#8a7b5f;margin-bottom:2px}
+.pc-cell .v{font-size:15px;font-weight:700;color:#3b3226}
+.pc-cell .v small{font-weight:400;font-size:11px;color:#8a7b5f}
+.pc-sec{font-size:11px;letter-spacing:.18em;color:#8a7b5f;margin:10px 0 4px;font-weight:600}
+.pc-tag{font-size:12px;color:#5a4c38;background:#f4edda;border-radius:6px;padding:6px 10px;margin-bottom:6px;line-height:1.6}
+.pc-abi{font-size:12.5px;line-height:1.7;color:#3b3226;padding:6px 0;border-bottom:1px dashed #d8c9a8}
+.pc-abi:last-child{border-bottom:none}
+.pc-abi b{color:#7c2d22}
+.pc-foot{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 16px;background:#f4edda;font-size:11px;color:#8a7b5f;letter-spacing:.1em;
+}
+.card-actions{display:flex;gap:10px;margin-top:14px}
+.card-actions .nav-btn{flex:1;justify-content:center}
+.empty-card{
+  border:2px dashed var(--line);border-radius:14px;padding:40px 20px;text-align:center;
+  color:var(--ink-faint);font-size:14px;font-family:var(--sans);line-height:1.9;background:rgba(255,252,242,.4);
+}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);
+  background:#3b3226;color:#f4ecda;padding:11px 22px;border-radius:999px;
+  font-size:13.5px;font-family:var(--sans);letter-spacing:.05em;opacity:0;
+  transition:opacity .3s, transform .3s;pointer-events:none;z-index:99;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ================= 响应式 ================= */
+@media (max-width:900px){
+  .leaf{padding:36px 26px 40px 36px;min-height:0}
+  .gen-layout{grid-template-columns:1fr}
+  .card-preview{position:static}
+  h1.chap-title{font-size:25px}
+  .cover h1{font-size:34px;letter-spacing:.2em;text-indent:.2em}
+  .cover .sub{font-size:12px;letter-spacing:.3em;text-indent:.3em}
+  .page-dots{max-width:80vw}
+  .meta-grid{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .book-shell{padding:16px 10px 48px}
+  .leaf{padding:30px 20px 36px 30px;border-radius:3px 6px 6px 3px}
+  .leaf::after{width:10px}
+  .leaf::before{left:11px}
+  .folio{right:22px;bottom:14px;font-size:11.5px}
+  .nav-btn{padding:8px 13px;font-size:13px}
+  p{font-size:14.5px;line-height:1.9}
+  h1.chap-title{font-size:22px}
+  .mrow{grid-template-columns:1fr;gap:6px}
+  .mrow .rm{width:100%;height:34px}
+  .field-row{grid-template-columns:1fr}
+  .cover h1{font-size:28px}
+}
+@media print{
+  body{background:#fff}
+  .book-topbar,.page-nav,.card-actions{display:none}
+  .page{position:static;visibility:visible;opacity:1;transform:none;display:none}
+  .page.active{display:block}
+  .leaf{box-shadow:none;border:1px solid #ccc;min-height:0}
+}
+</style>
+</head>
+<body class="paper-grain">
+<div class="book-shell">
+  <div class="book-topbar">
+    <div class="book-title-mini">
+      <svg viewBox="0 0 24 24"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4z"></path><path d="M4 4a3 3 0 0 1 3-3h11v17"></path><path d="M7 21V6"></path></svg>
+      模组·静流之谜
+    </div>
+    <div class="book-controls">
+      <button class="nav-btn" id="btnMenu" type="button" onclick="toggleMenu()">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>目录
+      </button>
+    </div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="page-wrap" id="pageWrap" style="height: 728px;">
+      <section class="page active" data-label="封面">
+        <div class="leaf paper-grain">
+          <div class="cover">
+            <img class="cover-art" src="./jingliu.index_files/cover.jpg" alt="水静市滨海都市">
+            <h1>静流之谜</h1>
+            <div class="sub">水 静 市 调 查 档 案</div>
+            <div class="meta-grid">
+              <div class="meta-item"><span class="k">作者</span><span class="v">菲尔德·普利顿（2530367218）</span></div>
+              <div class="meta-item"><span class="k">规则</span><span class="v">EC 永恒神选</span></div>
+              <div class="meta-item"><span class="k">等级</span><span class="v hot">D级</span></div>
+              <div class="meta-item"><span class="k">时长</span><span class="v">10–14h</span></div>
+              <div class="meta-item"><span class="k">难度</span><span class="v hot">普困</span></div>
+              <div class="meta-item"><span class="k">备注</span><span class="v">带上训练家ID卡</span></div>
+            </div>
+            <p class="lead" style="max-width:420px;margin:0 auto">海风、都市，以及被忘却的——</p>
+            <div class="seal">水静<br>之谜</div>
+            <div class="cover-meta">基于「精灵宝可梦」世界观 · 同人创作模组<br>V1.0（0924）</div>
+          </div>
+          <div class="folio">扉页 <b>· Ⅰ</b></div>
+        </div>
+      </section>
+<section class="page" data-label="目录">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">CONTENTS</span><span class="rule"></span></div>
+          <h1 class="chap-title">目 录</h1>
+          <ul class="toc-list" id="tocList"><li class="toc-group"><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l1"><span class="arrow"></span><span class="tt">一、开始之前声明</span><span class="pg">· 3</span></a><ul class="toc-sub"><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">开始之前声明</span><span class="pg">· 3</span></a></li></ul></li><li class="toc-group"><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l1"><span class="arrow"></span><span class="tt">二、故事的核心与走势</span><span class="pg">· 4</span></a><ul class="toc-sub"><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">故事的核心与走势</span><span class="pg">· 4</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">移动时间</span><span class="pg">· 5</span></a></li></ul></li><li class="toc-group"><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l1"><span class="arrow"></span><span class="tt">三、模组的机制</span><span class="pg">· 6</span></a><ul class="toc-sub"><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">模组机制</span><span class="pg">· 6</span></a></li></ul></li><li class="toc-group open"><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l1"><span class="arrow"></span><span class="tt">四、模组内容</span><span class="pg">· 7</span></a><ul class="toc-sub"><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">任务</span><span class="pg">· 7</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">导入</span><span class="pg">· 8</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">宝可梦中心</span><span class="pg">· 9</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">水静酒店</span><span class="pg">· 10</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">海边步道</span><span class="pg">· 11</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">海港码头</span><span class="pg">· 12</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">百货商场</span><span class="pg">· 13</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">游戏厅</span><span class="pg">· 14</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">美术馆</span><span class="pg">· 15</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">体育场（赛前）</span><span class="pg">· 16</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">夜间酒店事件</span><span class="pg">· 17</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">大师赛初赛</span><span class="pg">· 18</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">复赛·忆海仪启动</span><span class="pg">· 19</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">火箭队介入</span><span class="pg">· 20</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">最后的守卫</span><span class="pg">· 21</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">完美结局</span><span class="pg">· 22</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">普通结局</span><span class="pg">· 23</span></a></li></ul></li><li class="toc-group"><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l1"><span class="arrow"></span><span class="tt">五、结束世界</span><span class="pg">· 24</span></a><ul class="toc-sub"><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">结束世界</span><span class="pg">· 24</span></a></li></ul></li><li class="toc-group open"><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l1"><span class="arrow"></span><span class="tt">六、附录</span><span class="pg">· 25</span></a><ul class="toc-sub"><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">物品·百货大楼</span><span class="pg">· 25</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">物品·其他</span><span class="pg">· 26</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">怪物·火箭队与安保</span><span class="pg">· 27</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">宝可梦·游戏厅兑换</span><span class="pg">· 28</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">宝可梦·敌人</span><span class="pg">· 29</span></a></li><li><a href="https://p6-flow-sign.byteimg.com/tos-cn-i-ik7evvg4ik/rc/pc/super_tool/ef04dc4fc2f5489ab4eea0724c6b40ce.html?lk3s=8e244e95&amp;rcl=20260925172331497B6D4589445D10C1FE&amp;rrcfp=f512b60b&amp;x-expires=1791624235&amp;x-signature=2cgZyzp8DDkpeHLRspvujzopGD8%3D#" class="toc-l2"><span class="tt">宝可梦属性卡生成器</span><span class="pg">· 30</span></a></li></ul></li></ul>
+          <div class="folio">二 <b>· 目录</b></div>
+        </div>
+      </section>
+<section class="page" data-label="开始之前">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">壹</span><span class="rule"></span></div>
+          <h1 class="chap-title">一、开始之前声明</h1>
+          <p>该模组基于"口袋妖怪"/"精灵宝可梦"世界观创作而来，不过没有原作主角团登场，ST可以根据需求改动模组之中的内容。</p>
+          <p>不过该模组的核心要求仍然是<span class="em-green">「照顾玩家体验」</span>。</p>
+          <div class="cg">"水静市的海风本该是咸的，但我闻到了阴谋的味道。"</div>
+          <p>本模组为《青园之旅》续作，请确认每位玩家持有【训练家ID卡】。</p>
+          <div class="rule-card">
+            <h4>排版约定</h4>
+            <p><span class="em-green">绿色加粗</span>为重点内容，<strong>黑色加粗</strong>为给ST的正文，<em class="cg" style="display:inline-block;padding:2px 10px;margin:0">灰色斜体</em>为场景CG，<strong style="color:var(--accent)">红色加粗</strong>为标题。</p>
+          </div>
+          <h3 class="mini-title">更新日志 · V1.0（by 菲尔德）</h3>
+          <ol class="nlist">
+            <li>撰写完毕。</li>
+          </ol>
+          <div class="folio">三 <b>· 01</b></div>
+        </div>
+      </section>
+<section class="page" data-label="故事核心">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">贰</span><span class="rule"></span></div>
+          <h1 class="chap-title">二、故事的核心与走势</h1>
+          <p>青园事件结束后两周。轮回者们受到君莎小姐的正式邀请函，前往就在附近的滨海大都市——水静市。水静市是丰缘沿海最繁华的都市之一：华丽大赛会场、百货商场、美术馆、港口、酒店一应俱全。</p>
+          <h2 class="sub-title">谜案：失忆精灵</h2>
+          <p>近一周来多只宝可梦出现了离奇症状——身体完好无损，却忘记了战斗和表演要用的招式，甚至遗忘了自己的训练家，对其他熟悉的人也表现得很陌生与恐惧。经过乔伊小姐检查，它们没有外伤、没有中毒、没有异常状态……或者说失忆本就是异常状态。</p>
+          <p>无论是居民平时驯养的精灵还是百货商场展示用的精灵，甚至警局收容的火箭队缴获精灵，都有这一症状出现。</p>
+          <div class="rule-card">
+            <h4>表象与真相</h4>
+            <p><strong>表象：</strong>所有线索都指向火箭队——黑风衣、游戏厅据点、码头交接。</p>
+            <p><strong>真相：</strong>火箭队只是买家。真正的幕后是水静市本地高新科技企业"海蓝科技"，他们研发了"忆海仪"装置，可以剥离宝可梦与人类之间的情感记忆，洗脑后高价卖给火箭队。火箭队在华丽大师赛当天收货，而海蓝科研打算在会场启动忆海仪，做逃离前的最大一单买卖。</p>
+          </div>
+          <div class="folio">四 <b>· 02</b></div>
+        </div>
+      </section>
+
+      <!-- 页：移动时间 -->
+      <section class="page" data-label="移动时间">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">途</span><span class="rule"></span></div>
+          <h2 class="sub-title">水静市 · 移动时间</h2>
+          <table class="tbl">
+            <tbody><tr><th>起点</th><th>终点</th><th>步行</th><th>打车</th></tr>
+            <tr><td>港口码头</td><td>宝可梦中心</td><td>5分钟</td><td>50币</td></tr>
+            <tr><td>港口码头</td><td>水静酒店</td><td>25分钟</td><td>150币</td></tr>
+            <tr><td>宝可梦中心</td><td>水静酒店</td><td>20分钟</td><td>120币</td></tr>
+            <tr><td>水静酒店</td><td>百货商场</td><td>10分钟</td><td>80币</td></tr>
+            <tr><td>百货商场</td><td>游戏厅（B1）</td><td>楼内</td><td>免费</td></tr>
+            <tr><td>百货商场</td><td>美术馆</td><td>15分钟</td><td>100币</td></tr>
+            <tr><td>美术馆</td><td>华丽大赛会场</td><td>20分钟</td><td>120币</td></tr>
+            <tr><td>华丽大赛会场</td><td>海边步道</td><td>10分钟</td><td>80币</td></tr>
+            <tr><td>海边步道</td><td>海港码头（工业区）</td><td>35分钟</td><td>200币</td></tr>
+            <tr><td>海港码头（工业区）</td><td>水静酒店</td><td>40分钟</td><td>220币</td></tr>
+          </tbody></table>
+          <p class="lead" style="font-size:13px;margin-top:10px">注：水静市是滨海大都市，市区面积大，跨区移动耗时较长。打车时间约为步行的一半。</p>
+          <div class="folio">五 <b>· 03</b></div>
+        </div>
+      </section>
+<section class="page" data-label="模组机制">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">叁</span><span class="rule"></span></div>
+          <h1 class="chap-title">三、模组的机制</h1>
+          <div class="rule-card">
+            <h4>属性转换</h4>
+            <p>所有伤害类型都会转化为属性攻击（多种属性由轮回者选择）：钝击为格斗或水、穿刺为一般、挥砍为飞行、火焰为火、冰霜为冰、闪电为电、雷鸣为虫、强酸为草、暗蚀为鬼、毒素为毒、光耀为妖精、辐射为恶、纯粹为任意属性、心灵为超能、力场为钢。</p>
+            <p>轮回者为一般系宝可梦，对应的克制属性对他们造成2倍伤害，免疫属性则不造成伤害。</p>
+            <p>以上未提及的属性伤害仅在合理RP前提下可造成。</p>
+          </div>
+          <div class="rule-card">
+            <h4>中级指挥</h4>
+            <p>每轮两次，轮回者可以消耗1AP指挥宝可梦发动一次技能，仅当轮回者本人参战时，他们掷先攻。</p>
+          </div>
+          <div class="rule-card">
+            <h4>战斗规则</h4>
+            <p>无论击倒目标所有宝可梦，还是击倒训练师都算做战斗胜利。轮回者的物理特性及武器攻击（魔杖攻击除外）视作物攻，其余效应视为特攻。不造成伤害的其他效应视为变化系技能。所有需要掷骰命中的攻击都具有[致命20]。</p>
+          </div>
+          <div class="rule-card">
+            <h4>特殊状态：[羁绊消散]</h4>
+            <p>宝可梦陷入失忆时遗忘1d3个技能（轮回者遗忘特性），拒绝听从原训练家指挥。遗忘所有技能后只能使用随机目标的挣扎技能。</p>
+            <p>挣扎，无属性，2d4+2伤害，自己受到一半伤害。</p>
+          </div>
+          <div class="folio">五 <b>· 03</b></div>
+        </div>
+      </section>
+<section class="page" data-label="任务">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h1 class="chap-title">四、模组内容</h1>
+          <h2 class="sub-title">1. 任务</h2>
+          <ul class="list">
+            <li><b>主线任务：</b>调查水静市之中发生的事件。</li>
+            <li><b>支线任务-魅力大师：</b>夺得宝可梦华丽大师赛的冠军。</li>
+            <li><b>支线任务-超级富翁：</b>使用任何手段获得5w以上的精灵币。</li>
+            <li><b>支线任务-斩草除根：</b>完美通关且完全摧毁忆海仪。</li>
+          </ul>
+          <p class="lead">支线任务完成前不展示。</p>
+          <div class="folio">六 <b>· 04</b></div>
+        </div>
+      </section>
+<section class="page" data-label="导入">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">2. 导入</h2>
+          <p>轮回者们将在第一天早晨10点抵达水静市。以下是一个示范用的导入，ST也可以选择使用其他的导入方式。</p>
+          <div class="cg">渡轮的嗡鸣声低沉而稳定，船身划破海面。远处的水静市天际线像一排参差不齐的牙齿——玻璃幕墙的高楼、圆顶的体育场、港口巨大的起重机，全部在上午的阳光下泛着白光。这里的码头比原野区门口热闹十倍。货运卡车的轰鸣，搬运工人的号子；游客举着相机拍海景；几个穿制服的协调家牵着打扮得漂漂亮亮的宝可梦走下渡轮。路边的小摊比比皆是，你们面前还有卖章鱼小丸子的小摊冒着热气，香味飘得很远。</div>
+          <p>君莎小姐与你们一同下船。她穿着标准的深蓝色警服，帽檐压得很低。她把你们带到码头边的长椅上，从公文包里掏出一个信封。</p>
+          <div class="quote">"感谢各位愿意陪我来一趟。最近水静市出事了。一周来不断有宝可梦出现奇怪症状。他们的身体各项指标都正常，但就是认不得训练家了。我们初步怀疑是火箭队残余分子搞的鬼——有目击者看到穿黑风衣的人鬼鬼祟祟出没，你们知道的，那身打扮太好认了。但我们追查了几次都扑空了，毕竟水静市实在是太大了。<br><br>华丽大师赛马上就要开幕，如果事态扩散的话后果不堪设想。我希望你们加入帮忙调查。"<span class="who">——君莎小姐</span></div>
+          <h3 class="mini-title">检查信封</h3>
+          <p>信封里是四张水静市的【调查通行证】和<strong>20000精灵币</strong>。</p>
+          <div class="quote">"这些精灵币是给你们应急使用，如果最后有余款还是要还给我的。"<span class="who">——君莎小姐</span></div>
+          <p>君莎小姐拍了拍身上的灰继续提醒。</p>
+          <div class="quote">"码头出去左转就是宝可梦中心，我知道你们旅行时可能不喜欢带太多伙伴，但可能会有危险，你们可以先去把精灵球先传输过来。有任何线索，随时打这个号码找我。"<span class="who">——君莎小姐</span></div>
+          <p>她递过来一张名片，上面只有一个手机号码。</p>
+          <h3 class="mini-title">咨询君莎小姐</h3>
+          <p>目前君莎小姐或者说警方掌握的线索完全指向火箭队，她当然不会吝惜回答轮回者的问题，只不过这些答案反而会让轮回者误入歧途。</p>
+          <ul class="list">
+            <li>"警局收容的火箭队缴获精灵也出现了失忆症状。他们是第一批出现症状的精灵，因此警方将火箭队作为第一目标。"</li>
+            <li>"有人在夜晚的海边目击过身穿黑色风衣的人，可能是火箭队在此接头。"</li>
+            <li>"可考究的第一起失忆案例发生在体育场，是一位协调训练家和她的搭档宝可梦水伊布。"</li>
+          </ul>
+          <p class="lead"><span class="em-green">ST提示：</span>必须请求ST适当地把谜底误导向火箭队的方向，这其中的戏剧效果很可能为模组增味。</p>
+          <div class="folio">七 <b>· 05</b></div>
+        </div>
+      </section>
+<section class="page" data-label="宝可梦中心">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">3. 宝可梦中心</h2>
+          <div class="cg">水静市的宝可梦中心比青园的大了不少，整面墙都是落地的玻璃窗，阳光透过白色的窗帘洒进来，把整间屋子照得发亮。你们一靠近门就自动打开，随即里面传来轻柔的背景音乐，像进入了另一个世界。</div>
+          <p>乔伊小姐穿着粉色制服，微笑着欢迎你们，但笑容有点僵——大概是最近太忙了。</p>
+          <p>这里的恢复区有七八只宝可梦在休息。角落的沙发上缩着一只胖丁，它把自己团成一个粉色的球，偶尔抬头看一眼周围，又赶紧把脸埋起来。她的训练家是个小女孩，坐在旁边眼睛红红的，手里攥着一只精灵球。</p>
+          <p>乔伊小姐一边使用机器将你们的精灵球传送过来，一边压低声音说：</p>
+          <div class="quote">"最近送来了好几只奇怪的宝可梦……身体各项指标都正常，但是失去了一些记忆。比如那只胖丁，她的训练家带她来的时候，她挣扎得可厉害了。<br><br>我们试过所有常规治疗手段，解毒、苏醒、全满药……都没用。君莎小姐来过几次，但也没查出原因。"<span class="who">——乔伊小姐</span></div>
+          <p>她看了一眼那只发抖的胖丁，叹了口气："你们是从哪来的？那边有听说什么吗？"</p>
+          <div class="rule-card">
+            <h4>功能与检定</h4>
+            <p>在精灵中心可以免费恢复宝可梦的HP与异常状态、当然也提供不太用得上的免费住宿跟食物。在这里可以报名水静华丽大师赛，若是轮回者们没有发问，乔伊小姐可以主动提醒。</p>
+            <p>给胖丁投喂食物或者逗弄胖丁可以使其降低警惕心，再通过一次<strong>DC12的驯兽检定</strong>后——胖丁会跟大家建立基础的羁绊，她蹭蹭最活跃轮回者的手心。</p>
+          </div>
+          <div class="folio">八 <b>· 06</b></div>
+        </div>
+      </section>
+<section class="page" data-label="水静酒店">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">水静酒店</h2>
+          <div class="cg">水静酒店是一栋三十层高的白色摩天楼，大堂里铺着大理石地板，踩上去凉凉的。这里为所有公职人员提供免费食宿，只要出示【调查通行证】就能办理。前台小姐看到你们的证件，立刻给你们开了一件20层的海景大房。</div>
+          <p>推开窗，整个水静湾铺展在眼前。蓝色的海面上有几艘帆船，远处港口的起重机像钢铁长颈鹿一样缓缓转动。风从窗户吹进来，带着很重的咸味。</p>
+          <p>房间里有两张大床、一个小冰箱、一部座机，设施非常完善。</p>
+          <div class="rule-card">
+            <h4>酒店功能与线索</h4>
+            <p>自然这里会是轮回者们长休跟短休的地点。在晚上十点时，可以通过一个<strong>DC15的察觉检定</strong>发现两个穿黑色风衣的人在集装箱旁边交接一个金属箱子。</p>
+            <p>此外，跟前台小姐交谈可以知道，住在812号房间的小妹妹看起来心情不是很好。她们一家久居于酒店，是这里的熟客。如果更进一步交谈的话，前台小姐会请求他们上楼看看。</p>
+          </div>
+          <h3 class="mini-title">小七（812号房）</h3>
+          <p>812号房间的住户小七近几天独自住在酒店，她的父母这两周需要去金黄市出差。</p>
+          <p>她的皮卡丘在三天前跟她外出逛商场时受到忆海仪影响，如今已经不记得她了。不过小七有很多时间和皮卡丘重新培养羁绊，因此只是稍微苦恼。</p>
+          <p>她正在教导皮卡丘使用打草结。若轮回者能够帮助小七（无论是技能机器还是亲身示范，但我想后者需要一个制作检定），小七会给轮回者<strong>5000精灵币</strong>的报酬，并告诉他们在皮卡丘失忆前曾经痛苦地捂住耳朵/或是脑袋，她也记得不是很清楚。</p>
+          <div class="folio">九 <b>· 07</b></div>
+        </div>
+      </section>
+<section class="page" data-label="海边步道">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">海边步道</h2>
+          <div class="cg">木制的栈道沿着海岸线延伸，被潮水浸得发黑的木板踩上去嘎吱作响。阳光把海面晒成一片碎金，远处有几个小孩在沙滩上追一只长尾怪手，笑叫声不断传来。路边插了几个海蓝科研的广告牌，写着"羁绊永恒：让宝可梦的陪伴不再有终点。"</div>
+          <p>步道上的人不多：一个慢跑的老大爷带着他的土狼犬、一对坐在长椅上写生的学生、一个遛向日花怪的上班族。海风把他们的头发吹得乱七八糟，但每个人都看起来心情不错——这座城市表面上风平浪静。</p>
+          <p>路边有卖冰淇淋的小贩，他的趁着他不注意长尾怪手蹲在垃圾桶旁边捡瓶盖。</p>
+          <p>这里的大家都沉溺于平和，虽然可以聊聊天，但是提供不了什么有趣的线索。</p>
+          <div class="rule-card">
+            <h4>关键线索</h4>
+            <p>在步道尽头，你们能一个穿黑色风衣的男人在打电话。他声音压得很低，但海风把几个字吹了过来：</p>
+            <div class="quote">"……卖家那边说明天交货……对，就是那些'干净的货'……钱我们已经打过去了……别催了，我在会场这边盯着呢。"<span class="who">——黑风衣男子</span></div>
+            <p>他挂了电话，转身看到你们，愣了一秒，然后快步走向停车场。若是轮回者们跟上去，虽然追不上他，但足以记下了他的最后三位车牌号：<strong>37X</strong>。</p>
+          </div>
+          <h3 class="mini-title">迷路向尾（随机事件）</h3>
+          <p>无论在哪里都可以触发这个事件，作为提供线索的方式。一只流浪的向尾喵从XX钻出来，蹭你的裤腿，似乎是想要投喂。</p>
+          <p>只要蹲下身来，轮回者就能看见她脖子上挂着一个小铜牌，上面刻着编号"<strong>HL-047</strong>"。</p>
+          <div class="folio">十 <b>· 08</b></div>
+        </div>
+      </section>
+<section class="page" data-label="海港码头">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">海港码头</h2>
+          <div class="cg">你们重新回到海港码头。起重机的钢架在你们头顶交错，集装箱横竖地放在一起。空气里是海盐和机油的混合味道。</div>
+          <p>一个蹲在集装箱上吃便当的老工人看了你们一眼，然后好奇地出声搭讪。</p>
+          <div class="quote">"你们看起来是从外处来的训练家？你们来这做什么？"<span class="who">——老码头工人</span></div>
+          <p>如果轮回者们愿意出示【调查通行证】，老工人会把自己几天在这里的所见所闻如实告知。</p>
+          <div class="quote">"这礼拜是挺怪的，天天半夜有卡车来，车牌全拿泥糊了。<br>"那几个人也奇怪，背着人就讲什么货啊，会场啊。"<br>"还有什么洗..后台三号间。我就记得这几点了。"<span class="who">——老码头工人</span></div>
+          <p>除此之外，在这里还有一只刻着编号"HL-A25"的针管，已经被来往的工人踩成碎片了。必须通过一次<strong>DC16的调查检定</strong>才能发现它。</p>
+          <div class="folio">十一 <b>· 09</b></div>
+        </div>
+      </section>
+<section class="page" data-label="百货商场">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">百货商场</h2>
+          <div class="cg">水静百货在地上有六层，是一栋巨型建筑，玻璃幕墙从地面一直到楼顶。穿过旋转门，冷气扑面而来——和外面的海风完全是两个世界。</div>
+          <p>一楼是化妆品和首饰，香水味混着冷气；二楼是服装店；三楼和四楼是宝可日用品；四楼展示区摆着一只吉利蛋，他穿着小裙子，站在一个玻璃台子上，对着路过的顾客微笑。不过仔细看去能发现他笑得很僵，眼神里藏着畏惧。</p>
+          <p>五楼是餐厅街，六楼是屋顶的花园，B1是游戏厅。</p>
+          <p>这里的各式商品被汇总于附录【百货大楼】，不过实际上分散于各个楼层。</p>
+          <p>四层的吉利蛋已经出现了失忆的症状，不过他的饲养员暂时还没注意到这点，如果有人提起的话他大概会推作"他今天有点害羞，比平时怕人一点。"</p>
+          <h3 class="mini-title">五楼餐厅</h3>
+          <p>这家餐厅里的人不是很多，靠窗的位置坐着一个穿学生制服的女生，她面前的沙拉一口没动，一直在哭。</p>
+          <p>女孩的参赛宝可梦（一只胖可丁）昨天突然失忆，她不知道明天的大师赛该怎么办。如果轮回者们表示自己是前来调查失忆事件的，并稍微透露自己的调查进度（主要是码头得到的信息）的话。女孩会愿意将体育场后台的通行证外借给他们。这能让至多五个人到华丽大赛的后台。</p>
+          <div class="folio">十二 <b>· 10</b></div>
+        </div>
+      </section>
+<section class="page" data-label="游戏厅">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">游戏厅</h2>
+          <div class="cg">下到B1，空气突然变了——香烟味、啤酒味、和老虎机摇得噼啪响的声音混在一起。霓虹灯闪烁，音乐很吵，十几张赌桌排成四排，几个年轻人在那儿拍桌子。</div>
+          <p>整个游戏厅分两个区：左边是老虎机区域，右边是投篮机和策略宝可棋。在你们头顶的上空挂着一块电子屏，滚动显示着今日游戏币排行榜——第一名是个叫"次郎"的玩家，已经赢了3200币。</p>
+          <p>在这里的前台可以使用精灵币兑换游戏币，或半价回收游戏币。购买比例为<strong>10精灵币：1游戏币</strong>。</p>
+          <div class="rule-card">
+            <h4>老虎机</h4>
+            <p>消耗10游戏币，玩家掷骰3d10，若结果有两个数相同则获得20游戏币，若结果有三个数相同则获得50游戏币。若结果均为10则获得1000游戏币。</p>
+          </div>
+          <div class="rule-card">
+            <h4>投篮机</h4>
+            <p>消耗20游戏币，玩家连续进行三次运动检定，掷骰前猜测这三次检定的结果总和，记为X。实际的结果总和记为Y。结算时基础奖励为50游戏币，猜测结果与实际结果每差1便减少10点，下限0点。</p>
+          </div>
+          <div class="rule-card">
+            <h4>策略宝可棋</h4>
+            <p>消耗至少10游戏币，至少要有2名玩家（至多4名），若玩家数不足则由庄家参与。</p>
+            <p>所有人都拥有皮卡丘，大针蜂，大嘴雀，喷火龙，炎帝这五枚棋子。它们的基础战力分别为1-5。玩家掷d6，若结果为2-5则棋子战力+1，若结果为6则棋子战力+2。每轮结束时，战力最高的棋子获胜，但战力达到6的棋子和战力低于3的棋子同时在场时，后者必定获胜。胜者积1分，先得2分者赢得全盘，拿走所有人投入的币。</p>
+          </div>
+          <p>柜台老板是个寸头男人，脖子上挂着金链子，正在翻看账本，可以在他这里兑换宝可梦。</p>
+          <div class="rule-card">
+            <h4>可兑换的宝可梦</h4>
+            <p><span class="tag normal">普通档</span>500币：喵喵、小磁怪、姆克儿、长尾怪手</p>
+            <p><span class="tag rare">稀有档</span>1500币：凯西、3D龙</p>
+            <p><span class="tag epic">准神档</span>3000币：圆陆鲨</p>
+          </div>
+          <div class="rule-card">
+            <h4>隐藏线索</h4>
+            <p>如果在这里尝试偷看账本，一次<strong>DC14的察觉检定</strong>可以发现游戏厅的账户本月给"海蓝科研"打了一笔巨款，备注是"采购款"。</p>
+            <p>此外，在老虎机区域的墙上可以发现一张翘脚的海报，海报后面是一个上了锁的门把手，上面刻有红色的R。</p>
+          </div>
+          <div class="folio">十三 <b>· 11</b></div>
+        </div>
+      </section>
+<section class="page" data-label="美术馆">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">美术馆</h2>
+          <div class="cg">美术馆是一栋白色的现代建筑，进门就是挑高八米的大厅，地板是抛光的灰色大理石。来这里的人不算多，但进门的所有人都下意识压低了声音。</div>
+          <p>二楼挂着历代华丽大赛冠军的画像——有抱着水伊布的金发女人、牵着火焰鸡的墨镜男人、和妙蛙花站在一起的老绅士。其中一副尤其显眼，描绘的是一只亲昵蹭着女孩脸颊的伊布。老管理员在这里为所有游客介绍画作。</p>
+          <p>你们走进观察这幅画作，发现它的名字是《羁绊》，在画框右下角有一行小字，写着"海蓝科研赞助"。</p>
+          <p>老管理员看你们正看着这幅画，走过来介绍。</p>
+          <div class="quote">"这幅画描绘的是首届华丽大赛的冠军，作者是我们这儿的常客……但他最近状态不好。他的搭档图图犬上周突然不听话了，画也画不出来了。唉。"<span class="who">——美术馆老管理员</span></div>
+          <p>如果轮回者们向老管理员问起海蓝科研的事，他会要求轮回者们跟他一起做个小翻牌挑战。一共是十二张牌，分别为关都和丰缘的御三家和最终进化型，在短暂的十秒展示后，轮回者需要凭借自己的印象连线。</p>
+          <p>成功后，老管理员会取出海蓝科研存在这里仓库的两张规划图，似乎是在刻画体育场，也就是华丽大赛的会场，他们在会场后台某一处标记了红点。</p>
+          <div class="folio">十四 <b>· 12</b></div>
+        </div>
+      </section>
+<section class="page" data-label="体育场">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">体育场（赛前）</h2>
+          <div class="cg">华丽大赛会场是一个巨大的圆形建筑，外立面是蓝色的玻璃，像一个巨大的宝可梦球。走进去，观众席有五层，舞台是圆形的，灯光架从天花板垂下来，正在调试——五颜六色的光在空无一人的观众席上扫来扫去。后台走廊很窄，两边堆着设备箱。明天这里会坐满一万人。几个工作人员在搬椅子，嘴里哼着歌。</div>
+          <p>这里插了施工的牌子。</p>
+          <div class="quote">"喂，报名这一届华丽大赛的话得去精灵中心。今天晚上八点之前去还来得及。"<span class="who">——叼烟保安</span></div>
+          <p>叼着烟杆子的保安不允许你们靠近。不过看你们不像坏人，也多透露了一句。</p>
+          <div class="quote">"最近这些赞助商的技术团队也不知道在搞什么，说是调试灯光，搬进来的东西看着不像灯光器材啊……总之华丽大赛结束之后就清净了。"<span class="who">——保安</span></div>
+          <div class="folio">十五 <b>· 13</b></div>
+        </div>
+      </section>
+<section class="page" data-label="夜间酒店">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">夜间酒店事件</h2>
+          <p>酒店的夜间会有突发事件，我想一个<strong>DC15的察觉检定</strong>能让轮回者发现它。</p>
+          <p>大约是凌晨两点左右。轮回者的灵敏感官告诉你，大约在18层走廊里有一阵激烈的争吵声。若轮回者们下楼查看情况，就可以介入这个事件。</p>
+          <div class="quote">一个女声扯着声音喊："放开它！"<br>另一个男声说："少管闲事，这是我们的货。"</div>
+          <p>开门出去，18楼走廊的感应灯亮着。一个穿黑色风衣的男人正拽着一只暖暖猪的爪子往楼梯口拖。一个女生抱着暖暖猪，拼尽全力拖住他。</p>
+          <p>黑风衣看到你们，松开手上的暖暖猪就跑。如果轮回者们想要拦下黑风衣，这里可能会发生一场战斗，数据见【火箭队队员1】。</p>
+          <p>击败黑风衣之后，可以在他的身上找到一张备忘的便签，上面写着"<strong>11点启动，11点半动手</strong>"。</p>
+          <p>回头看，你们发现女生抱着暖暖猪哭了半天，最后取出一块【星之砂】递给你们。</p>
+          <div class="quote">"谢谢，虽然呼呼现在不认得我了。但我相信我能让他想起来的。"<span class="who">——暖暖猪训练家</span></div>
+          <div class="folio">十六 <b>· 14</b></div>
+        </div>
+      </section>
+<section class="page" data-label="大师赛初赛">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">大师赛·初赛</h2>
+          <div class="cg">第二天上午，体育场被观众挤得水泄不通，观众席坐满了人，相机的闪光灯比星星还闪。主持人的声音从扬声器里传出来，经过扩音后有点失真。</div>
+          <div class="quote">"欢迎各位来到水静市华丽大师赛！今天我们有来自全国各地的32位协调家，以及他们最骄傲的搭档！"<span class="who">——主持人</span></div>
+          <p>评委席坐着三个人：一个穿礼服的胖老头（前华丽大赛冠军）、一个拿笔记本的女记者、一个穿西装的商人（赞助商代表）。观众席上有人举着应援牌，上面写着协调家的名字。</p>
+          <h3 class="mini-title">华丽比赛海选规则</h3>
+          <div class="rule-card">
+            <h4>1. 属性与分组</h4>
+            <p><strong>帅气（Cool）：</strong>火、电、龙、飞行</p>
+            <p><strong>美丽（Beautiful）：</strong>水、冰、草</p>
+            <p><strong>可爱（Cute）：</strong>一般、虫、妖精</p>
+            <p><strong>聪明（Clever）：</strong>超能力、幽灵、恶、毒</p>
+            <p><strong>强壮（Tough）：</strong>格斗、地面、岩石、钢</p>
+          </div>
+          <div class="rule-card">
+            <h4>2. 初审表演</h4>
+            <p>选择自己报名的分组，每只宝可梦使用招式进行展示，由评委打分（0-10分），累计3轮，得分最高的两位进入华丽比赛决赛。</p>
+          </div>
+          <div class="rule-card">
+            <h4>3. 评分标准</h4>
+            <p>招式的属性与分组契合时，得基础分5分，否则拿2分；优秀的表演RP和创意给予1-5分加成；每级对应的华丽度给予1分加成；连续两轮使用同一招式，每重复一次总分减2分；三轮的招式表演RP之间产生联动，总分加3分。</p>
+          </div>
+          <h3 class="mini-title">可用的预设人物</h3>
+          <ul class="list">
+            <li><strong>一号选手·小来：</strong>搭档妙蛙种子，擅长风格可爱，喜欢用藤鞭摆造型</li>
+            <li><strong>二号选手·阿三：</strong>搭档哈克龙，擅长风格华丽，喜欢用龙卷风制造效果</li>
+          </ul>
+          <p>在初赛时，登台的轮回者就能隐约听到简短的嗡鸣声，像是更尖锐的空调外机。</p>
+          <div class="folio">十七 <b>· 15</b></div>
+        </div>
+      </section>
+<section class="page" data-label="忆海仪启动">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">复赛·忆海仪启动</h2>
+          <p>初赛的评分结果刚刚结束，主持人正要介绍下一位选手。</p>
+          <div class="cg">灯光突然闪了几下，扬声器发出刺耳的电流声，"吱——"的一声，所有人都捂住了耳朵。舞台角落的设备亮了——淡蓝色的光从3号储物间的门缝里透出来，像水一样漫过整个观众席。</div>
+          <p>然后你听到了声音。不是喊叫，是一种更让人不安的安静——前排一个协调家的妙蛙种子突然动作僵住了，歪着头看自己的训练家。旁边一个小朋友的皮卡丘从他怀里跳下来，躲到了椅子下面。</p>
+          <p class="lead">失忆症开始扩散了。</p>
+          <div class="rule-card">
+            <h4>羁绊扩散效果</h4>
+            <p>你自己的宝可梦，包括你自己也有反应——轮回者每分钟都必须进行<strong>DC14的意志豁免</strong>，失败陷入[羁绊消散]。而宝可梦则必定陷入。必须尽快关掉忆海仪。</p>
+          </div>
+          <div class="folio">十八 <b>· 16</b></div>
+        </div>
+      </section>
+<section class="page" data-label="火箭队介入">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">愚蠢的火箭队</h2>
+          <p>你们往后台跑，侧门"哐"一声被踹开——</p>
+          <p>一群穿黑制服、戴白R帽的人冲了进来，为首的是个戴墨镜的干部，他一脚踩在椅子上，大喊：</p>
+          <div class="quote">"海蓝科研的人说货已经准备好了！兄弟们，把那些听话的宝贝都带走！"</div>
+          <p>然后他看到了你们。</p>
+          <div class="quote">"……等等。怎么是你们？总部通缉令上的那群人？"<span class="who">——火箭队小干部</span></div>
+          <p>数据见附录【火箭队小干部】。</p>
+          <p>击败他之后，可以将他俘获作为质控海蓝科研的污点证人。</p>
+          <div class="folio">十九 <b>· 17</b></div>
+        </div>
+      </section>
+<section class="page" data-label="最后的守卫">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">最后的守卫</h2>
+          <div class="cg">你们推开3号储物间的门。一个奇怪的仪器立在房屋中间，像一把巨大的牙科椅子，上面绑着几根电极线，蓝色的光从椅子上一波一波地扩散。海蓝科研的安保队长站在机器旁边，手里拿着电击棍。</div>
+          <div class="quote">"你们不能关这个。老板说了，这一单会给我千分之一的分成。"<span class="who">——安保队长</span></div>
+          <p>数据见附录【安保队长】及【安保人员】*2，作为最后一战。</p>
+          <p>击败安保队长后，这台忆海仪还会工作，通过一个<strong>DC12的知识检定</strong>可以获悉让它逆向工作的方法，触发完美结局，否则按普通处理。</p>
+          <div class="folio">二十 <b>· 18</b></div>
+        </div>
+      </section>
+<section class="page" data-label="完美结局">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">完美结局</h2>
+          <div class="cg">不多时，水静市又恢复了日常。</div>
+          <p>经历本次事件的宝可梦提升1级。</p>
+          <p>海边步道上依旧有慢跑的老人和写生的学生。</p>
+          <p>宝可梦中心里，那只胖丁已经回到了它训练家身边，正在她怀里撒娇。乔伊小姐终于笑了，毕竟工作量小了很多。</p>
+          <p>水静市大师赛补办了一次，原先因为忆海仪没能参加的训练家，包括你们，又可以再次参加。</p>
+          <p>美术馆里，《羁绊》的作者重新拿起了画笔。</p>
+          <p>传送阵的光芒在轮船上亮起。君莎小姐朝着你们挥手道别。</p>
+          <div class="folio">二十一 <b>· 19</b></div>
+        </div>
+      </section>
+<section class="page" data-label="普通结局">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">肆</span><span class="rule"></span></div>
+          <h2 class="sub-title">普通结局</h2>
+          <div class="cg">不多时，水静市又恢复了日常。</div>
+          <p>因为这次事件而失忆的宝可梦没有得到恢复，不过他们的训练家都愿意重新建立羁绊。想必在很久之后，一切又会回到最初的样子。</p>
+          <p>传送阵的光芒在轮船上亮起。君莎小姐朝着你们挥手道别。</p>
+          <div class="folio">二十二 <b>· 20</b></div>
+        </div>
+      </section>
+<section class="page" data-label="结束世界">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">伍</span><span class="rule"></span></div>
+          <h1 class="chap-title">五、结束世界</h1>
+          <div class="cg">熟悉的白光再次闪过。你们眼前的景象开始扭曲、模糊，最终变成了一片纯白。</div>
+          <p>当你们再度睁开双眼之时，已经回到了主神空间之内。</p>
+          <div class="folio">二十三 <b>· 21</b></div>
+        </div>
+      </section>
+<section class="page" data-label="物品">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">陆</span><span class="rule"></span></div>
+          <h1 class="chap-title">六、附录 · 物品</h1>
+          <h2 class="sub-title">【百货大楼】</h2>
+          <div class="entry"><summary>【伤药】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>300精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>使用后使你或你的宝可梦之一恢复10HP。</p>
+            <p><i>斜体描述：请关注我们友好商店。</i></p>
+          </div></div>
+          <div class="entry"><summary>【好伤药】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>700精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>使用后使你或你的宝可梦之一恢复30HP。</p>
+            <p><i>斜体描述：关注友好商店喵。</i></p>
+          </div></div>
+          <div class="entry"><summary>【游戏币盒子】（限1个）<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，白装</p>
+            <p><b>物品价格：</b>1精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，[ST允许方可带入]，你现在有X枚游戏币啦。</p>
+          </div></div>
+          <div class="entry"><summary>【解毒药】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>200精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>使用后解除[中毒]。</p>
+          </div></div>
+          <div class="entry"><summary>【解麻药】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>300精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>使用后解除[麻痹]。</p>
+          </div></div>
+          <div class="entry"><summary>【解睡药】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>300精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>使用后解除[昏迷]。</p>
+          </div></div>
+          <div class="entry"><summary>【皮皮玩偶】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>200精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>更容易受到其他宝可梦喜爱。</p>
+          </div></div>
+          <div class="entry"><summary>【镇定方糖】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>700精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>可以使受惊吓的宝可梦冷静下来。</p>
+          </div></div>
+          <div class="entry"><summary>【球壳-瞬华冰花】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>800精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，精灵球装饰，具有该装饰的精灵球放出宝可梦时，场上会出现一朵绽放的冰莲特效。</p>
+          </div></div>
+          <div class="entry"><summary>【球壳-水无常势】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>800精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，精灵球装饰，具有该装饰的精灵球放出宝可梦时，场上会出现骇人的波涛大浪。</p>
+          </div></div>
+          <div class="entry"><summary>【球壳-珠光宝气】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>800精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，精灵球装饰，具有该装饰的精灵球放出宝可梦时，场上会出现漫天的钱币与闪光。</p>
+          </div></div>
+          <div class="entry"><summary>【球壳-流焰光纹】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>800精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，精灵球装饰，具有该装饰的精灵球放出宝可梦时，场上会出现流焰特效。</p>
+          </div></div>
+          <div class="entry"><summary>【球壳-水色涟漪】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>800精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，精灵球装饰，具有该装饰的精灵球放出宝可梦时，场上会出现涟漪和淡淡的微光。</p>
+          </div></div>
+          <div class="entry"><summary>【球壳-粉樱星落】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>800精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，精灵球装饰，具有该装饰的精灵球放出宝可梦时，场上会出现漫天的樱花与星光闪烁。</p>
+          </div></div>
+          <div class="entry"><summary>【神奇糖果】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，白装</p>
+            <p><b>物品价格：</b>9999精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>[升级道具]使用后令一只宝可梦升级（累计升级次数记录于ID卡），你的宝可梦升级之后，属性将会得到提升，累计升级2次后将会进化。这些效果仅在"菲尔德的宝可梦世界"生效。</p>
+            <p><i>斜体描述：原汁原味的神奇糖果。</i></p>
+          </div></div>
+          <div class="entry"><summary>【进化奇石】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，白装</p>
+            <p><b>物品价格：</b>1000精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>给具有进化型的宝可梦装备时，其获得[物攻减伤+5]及[特攻减伤+5]。</p>
+          </div></div>
+          <div class="entry"><summary>【木炭】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，白装</p>
+            <p><b>物品价格：</b>1000精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>给宝可梦装备时，其使用火系技能额外造成2伤害。</p>
+          </div></div>
+          <div class="entry"><summary>【墨镜】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，白装</p>
+            <p><b>物品价格：</b>1000精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>给宝可梦装备时，其使用恶系技能额外造成2伤害。</p>
+          </div></div>
+          <div class="entry"><summary>【黑带】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，白装</p>
+            <p><b>物品价格：</b>1000精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>给宝可梦装备时，其使用格斗系技能额外造成2伤害。</p>
+          </div></div>
+          <div class="entry"><summary>【神秘水滴】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，白装</p>
+            <p><b>物品价格：</b>1000精灵币</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>给宝可梦装备时，其使用水系技能额外造成2伤害。</p>
+          </div></div>
+          <div class="folio">二十四 <b>· 22</b></div>
+        </div>
+      </section>
+<section class="page" data-label="其他物品">
+        <div class="leaf paper-grain">
+          <h2 class="sub-title">【其他物品】</h2>
+          <div class="entry"><summary>【技能学习机-替身】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>2000精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>[拾绑]，给宝可梦使用后令其学会替身。</p>
+            <p>替身，变化，消耗25%HP创造一个可以承受一次伤害的替身。</p>
+          </div></div>
+          <div class="entry"><summary>【技能学习机-电磁波】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>6000精灵币</p>
+            <p><b>物品类型：</b>消耗品</p>
+            <p><b>物品效果：</b>[拾绑]，给宝可梦使用后令其学会电磁波。</p>
+            <p>电磁波（电系，变化）：必须进行命中检定，命中+4，命中后麻痹对手</p>
+          </div></div>
+          <h2 class="sub-title">【关键道具】</h2>
+          <div class="entry"><summary>【调查通行证】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，灰装</p>
+            <p><b>物品价格：</b>？积分</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>出示该物品可以让水静市的居民配合你调查，但他们也有权利为你设置一个小挑战。</p>
+            <p><i>斜体描述：一般是用于在水静酒店蹭吃蹭住的。</i></p>
+          </div></div>
+          <div class="entry"><summary>【水静缎带勋章】<button type="button" class="cpy-btn">复制</button></summary><div class="body">
+            <p><b>物品等级：</b>？级，？装</p>
+            <p><b>物品价格：</b>？</p>
+            <p><b>物品类型：</b>其他</p>
+            <p><b>物品效果：</b>[拾绑]，意味着你在水静华丽大师赛中取得优异成绩。</p>
+          </div></div>
+          <div class="folio">二十五 <b>· 23</b></div>
+        </div>
+      </section>
+<section class="page" data-label="怪物">
+        <div class="leaf paper-grain">
+          <h2 class="sub-title">怪物 · 火箭队与安保</h2>
+          <div class="entry"><summary>【火箭队队员1】</summary><div class="body">
+            <p>[类人、克轻、反小、普通生物]</p>
+            <p><b>HP：</b>100　<b>AP：</b>2（1AP仅用于指挥）</p>
+            <p>[普通系]</p>
+            <p>察觉+2，威吓+2</p>
+            <p>力量：6（+2） 敏捷：6（+2） 体质：6（+2） 智力：3（+1） 决心：3（+1）</p>
+            <p>强韧豁免+2，反射豁免+2，意志豁免+1，先攻+4</p>
+            <div class="lab">特性</div>
+            <p><b>指挥官：</b>该生物可以使用其AP指挥他可见宝可梦行动。</p>
+            <p><b>杂鱼：</b>该生物拥有宝可梦【瓦斯弹】*1</p>
+            <div class="lab">行为方式</div>
+            <p><b>躲避，1AP：</b>寻找一处合适而不会被范围效应影响的位置。</p>
+            <p><b>逃跑，1AP：</b>立即移动2次</p>
+          </div></div>
+          <div class="entry"><summary>【火箭队小干部】</summary><div class="body">
+            <p>[类人、克轻、反小、精英生物]</p>
+            <p><b>HP：</b>150　<b>AP：</b>3（2AP仅用于指挥），DL14</p>
+            <p>[普通系]</p>
+            <p>察觉+2，威吓+2</p>
+            <p>力量：6（+2） 敏捷：6（+2） 体质：6（+2） 智力：3（+1） 决心：3（+1）</p>
+            <p>强韧豁免+2，反射豁免+2，意志豁免+1，先攻+4</p>
+            <div class="lab">特性</div>
+            <p><b>指挥官：</b>该生物可以使用其AP指挥他可见宝可梦行动。</p>
+            <p><b>精英：</b>该生物拥有宝可梦【阿柏怪】*1、【双弹瓦斯】*1</p>
+            <div class="lab">行为方式</div>
+            <p><b>躲避，1AP：</b>寻找一处合适而不会被范围效应影响的位置。</p>
+            <p><b>逃跑，1AP：</b>立即移动2次。</p>
+          </div></div>
+          <div class="entry"><summary>【安保人员】</summary><div class="body">
+            <p>[类人、克轻、反小、普通生物]</p>
+            <p><b>HP：</b>60　<b>AP：</b>2</p>
+            <p>[普通系]</p>
+            <p>察觉+2，威吓+2</p>
+            <p>力量：6（+2） 敏捷：6（+2） 体质：6（+2） 智力：3（+1） 决心：3（+1）</p>
+            <p>强韧豁免+2，反射豁免+2，意志豁免+1，先攻+4</p>
+            <div class="lab">行为方式</div>
+            <p><b>电棍，1AP：</b>近战武器攻击，命中后造成1d8+4格斗系伤害附带2电系伤害。</p>
+          </div></div>
+          <div class="entry"><summary>【安保队长】</summary><div class="body">
+            <p>[类人、克轻、反小、精英生物]</p>
+            <p><b>HP：</b>120　<b>AP：</b>3</p>
+            <p>[普通系]</p>
+            <p>察觉+2，威吓+2</p>
+            <p>力量：6（+2） 敏捷：12（+4） 体质：12（+4） 智力：3（+1） 决心：15（+5）</p>
+            <p>强韧豁免+4，反射豁免+4，意志豁免+7，先攻+4</p>
+            <div class="lab">行为方式</div>
+            <p><b>闪电五连棍，2AP：</b>五次近战武器攻击，命中后造成1d4+4格斗系伤害附带2电系伤害。</p>
+            <p><b>飞踢，1AP：</b>近战武器攻击，命中后造成1d6+4格斗系伤害并击退（视为一次移动）。</p>
+          </div></div>
+          <div class="folio">二十六 <b>· 24</b></div>
+        </div>
+      </section>
+<section class="page" data-label="游戏厅宝可梦">
+        <div class="leaf paper-grain">
+          <h2 class="sub-title">宝可梦 · 游戏厅兑换</h2>
+          <div id="monGame"><div class="entry" open=""><summary>喵喵 <span class="tag normal">游戏厅</span></summary><div class="body"><p><b>HP：</b>35　<b>[</b>一般<b>系]</b>　<b>物攻减伤+</b>2　<b>特攻减伤+</b>3　<b>先攻+</b>6</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>捡拾：战斗结束后有5%概率捡到【金珠】</div><div class="lab">技能</div><div class="pc-abi"><b>利爪</b>（一般系 · 物攻）：必须进行命中检定，命中+7，2d4+3伤害</div><div class="pc-abi"><b>叫声</b>（一般系 · 变化）：目标物攻伤害-1，可叠加，至多-6</div><div class="pc-abi"><b>聚宝功</b>（一般系 · 物攻）：必须进行命中检定，命中+7，2d4+3伤害，战斗结束100精灵币</div></div></div><div class="entry" open=""><summary>姆克儿 <span class="tag normal">游戏厅</span></summary><div class="body"><p><b>HP：</b>35　<b>[</b>一般 / 飞行<b>系]</b>　<b>物攻减伤+</b>2　<b>特攻减伤+</b>2　<b>先攻+</b>4</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>锐利目光：不会被降低命中相关效果影响</div><div class="lab">技能</div><div class="pc-abi"><b>撞击</b>（一般系 · 物攻）：必须进行命中检定，命中+7，2d4+4伤害</div><div class="pc-abi"><b>电光一闪</b>（一般系 · 物攻）：2d4+4伤害，训练家可以在每轮开始时消耗1AP指挥该技能</div><div class="pc-abi"><b>翅膀攻击</b>（飞行系 · 物攻）：必须进行命中检定，命中+7，2d6+4伤害</div><div class="pc-abi"><b>羽栖</b>（飞行系 · 变化）：回复自身一半HP</div></div></div><div class="entry" open=""><summary>小磁怪 <span class="tag normal">游戏厅</span></summary><div class="body"><p><b>HP：</b>30　<b>[</b>电 / 钢<b>系]</b>　<b>物攻减伤+</b>5　<b>特攻减伤+</b>4　<b>先攻+</b>3</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>磁力：钢系目标无法主动离场</div><div class="lab">技能</div><div class="pc-abi"><b>电击</b>（电系 · 特攻）：必须进行命中检定，命中+8，2d4+6伤害，命中有概率麻痹对手</div><div class="pc-abi"><b>电磁波</b>（电系 · 变化）：必须进行命中检定，命中+4，命中后麻痹对手</div><div class="pc-abi"><b>金属音</b>（钢系 · 变化）：必须进行命中检定，命中+7，命中后目标特攻减伤-2，可叠加</div><div class="pc-abi"><b>充电</b>（电系 · 变化）：自身下一次电系招式伤害骰提升一级</div></div></div><div class="entry" open=""><summary>长尾怪手 <span class="tag normal">游戏厅</span></summary><div class="body"><p><b>HP：</b>40　<b>[</b>一般<b>系]</b>　<b>物攻减伤+</b>4　<b>特攻减伤+</b>4　<b>先攻+</b>5</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>捡拾：战斗结束后有5%概率捡到【金珠】</div><div class="lab">技能</div><div class="pc-abi"><b>抓</b>（一般系 · 物攻）：必须进行命中检定，命中+6，2d4+5伤害</div><div class="pc-abi"><b>连续抓</b>（一般系 · 物攻）：必须进行命中检定，命中+7，2+5伤害，攻击1d4+1次</div><div class="pc-abi"><b>挠痒</b>（一般系 · 变化）：目标物攻减伤-1，可叠加，至多-6</div><div class="pc-abi"><b>高速星星</b>（一般系 · 特攻）：2d6+3伤害，必定会命中</div></div></div><div class="entry" open=""><summary>凯西 <span class="tag normal">游戏厅</span></summary><div class="body"><p><b>HP：</b>30　<b>[</b>超能力<b>系]</b>　<b>物攻减伤+</b>2　<b>特攻减伤+</b>4　<b>先攻+</b>6</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>同步：受到异常状态时，施加相同异常给攻击者</div><div class="lab">技能</div><div class="pc-abi"><b>念力</b>（超能力系 · 特攻）：必须进行命中检定，命中+7，2d4+7伤害，命中有概率造成混乱</div><div class="pc-abi"><b>反射盾</b>（超能力系 · 变化）：全队物理伤害减伤+2</div><div class="pc-abi"><b>光墙</b>（超能力系 · 变化）：全队特殊伤害减伤+2</div></div></div><div class="entry" open=""><summary>3D龙 <span class="tag normal">游戏厅</span></summary><div class="body"><p><b>HP：</b>40　<b>[</b>一般<b>系]</b>　<b>物攻减伤+</b>5　<b>特攻减伤+</b>5　<b>先攻+</b>3</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>下载：提升自身物攻或特攻加值（已计入）</div><div class="lab">技能</div><div class="pc-abi"><b>变圆</b>（一般系 · 变化）：自身物攻减伤+1，可叠加，至多+6</div><div class="pc-abi"><b>撞击</b>（一般系 · 物攻）：必须进行命中检定，命中+8，2d4+4伤害</div><div class="pc-abi"><b>电磁炮</b>（电系 · 特攻）：必须进行命中检定，命中+6，2d10+6伤害</div></div></div><div class="entry" open=""><summary>圆陆鲨 <span class="tag normal">游戏厅</span></summary><div class="body"><p><b>HP：</b>40　<b>[</b>龙 / 地面<b>系]</b>　<b>物攻减伤+</b>4　<b>特攻减伤+</b>4　<b>先攻+</b>3</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>沙隐：沙暴环境下闪避提升</div><div class="lab">技能</div><div class="pc-abi"><b>咬住</b>（恶系 · 物攻）：必须进行命中检定，命中+8，2d6+5伤害</div><div class="pc-abi"><b>龙息</b>（龙系 · 特攻）：必须进行命中检定，命中+7，2d8+3伤害，命中有概率麻痹对手</div><div class="pc-abi"><b>挖地洞</b>（地面系 · 物攻）：2d10+5伤害，钻地蓄力一回合（无法被选为攻击目标），下一回合攻击</div><div class="pc-abi"><b>劈开</b>（一般系 · 物攻）：必须进行命中检定，命中+6，[致命19]，2d6+5伤害</div></div></div></div>
+          <div class="folio">二十七 <b>· 25</b></div>
+        </div>
+      </section>
+<section class="page" data-label="敌人宝可梦">
+        <div class="leaf paper-grain">
+          <h2 class="sub-title">宝可梦 · 敌人</h2>
+          <div id="monEnemy"><div class="entry" open=""><summary>阿柏怪 <span class="tag normal">敌人</span></summary><div class="body"><p><b>HP：</b>45　<b>[</b>毒<b>系]</b>　<b>物攻减伤+</b>6　<b>特攻减伤+</b>6　<b>先攻+</b>7</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>威吓：在场时使敌方生物物攻造成伤害-1</div><div class="lab">技能</div><div class="pc-abi"><b>毒牙</b>（毒系 · 物攻）：2d6+7伤害，目标还会陷入[中毒3]</div><div class="pc-abi"><b>咬碎</b>（恶系 · 物攻）：2d8+7伤害，目标还会陷入[恐慌]至其下回合结束</div><div class="pc-abi"><b>毒爆弹</b>（毒系 · 特攻）：2d10+6伤害，目标还会陷入[中毒3]</div><div class="pc-abi"><b>地震</b>（地面系 · 物攻）：2d10+7伤害。</div></div></div><div class="entry" open=""><summary>瓦斯弹 <span class="tag normal">敌人</span></summary><div class="body"><p><b>HP：</b>35　<b>[</b>毒<b>系]</b>　<b>物攻减伤+</b>6　<b>特攻减伤+</b>5　<b>先攻+</b>3</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>飘浮：免疫地面系招式</div><div class="lab">技能</div><div class="pc-abi"><b>毒瓦斯</b>（毒系 · 变化）：必须进行命中检定，命中+7，使目标陷入[中毒10]。</div><div class="pc-abi"><b>泥浆喷射</b>（地面系 · 特攻）：必须进行命中检定，命中+8，2d6+5伤害，还会使目标先攻立即-5。</div><div class="pc-abi"><b>毒爆弹</b>（毒系 · 特攻）：2d10+5伤害，还会使目标陷入[中毒3]</div><div class="pc-abi"><b>自爆</b>（一般系 · 物攻）：20+3伤害，自身HP降至0</div></div></div><div class="entry" open=""><summary>双弹瓦斯 <span class="tag normal">敌人</span></summary><div class="body"><p><b>HP：</b>50　<b>[</b>毒<b>系]</b>　<b>物攻减伤+</b>9　<b>特攻减伤+</b>6　<b>先攻+</b>5</p><div class="lab">特性</div><div class="pc-abi"><b>特性：</b>飘浮：免疫地面系招式</div><div class="lab">技能</div><div class="pc-abi"><b>毒瓦斯</b>（毒系 · 变化）：必须进行命中检定，命中+7，使目标陷入[中毒10]。</div><div class="pc-abi"><b>泥浆喷射</b>（地面系 · 特攻）：必须进行命中检定，命中+8，2d6+7伤害，还会使目标先攻立即-5</div><div class="pc-abi"><b>毒爆弹</b>（毒系 · 特攻）：2d10+7伤害，还会使目标陷入[中毒10]。</div><div class="pc-abi"><b>大爆炸</b>（一般系 · 物攻）：24+8伤害，自身HP降至0。</div></div></div></div>
+          <div class="folio">二十八 <b>· 26</b></div>
+        </div>
+      </section>
+<section class="page" data-label="属性卡生成器">
+        <div class="leaf paper-grain">
+          <div class="chap-mark"><span class="tick">陆</span><span class="rule"></span></div>
+          <h2 class="sub-title">宝可梦属性卡生成器</h2>
+          <div class="gen-layout">
+            <div class="form-col">
+              <div class="field">
+                <label>选择预设（可选）</label>
+                <select id="presetSel" onchange="loadPreset(this.value)"><option value="">—— 手动自定义 ——</option><optgroup label="游戏厅"><option value="喵喵|游戏厅">喵喵</option><option value="姆克儿|游戏厅">姆克儿</option><option value="小磁怪|游戏厅">小磁怪</option><option value="长尾怪手|游戏厅">长尾怪手</option><option value="凯西|游戏厅">凯西</option><option value="3D龙|游戏厅">3D龙</option><option value="圆陆鲨|游戏厅">圆陆鲨</option></optgroup><optgroup label="敌人"><option value="阿柏怪|敌人">阿柏怪</option><option value="瓦斯弹|敌人">瓦斯弹</option><option value="双弹瓦斯|敌人">双弹瓦斯</option></optgroup></select>
+              </div>
+              <div class="field">
+                <label>宝可梦名称</label>
+                <input type="text" id="fName" placeholder="例如：皮卡丘" oninput="renderCard()">
+              </div>
+              <div class="field">
+                <label>标签（括号内文字）</label>
+                <input type="text" id="fTag" placeholder="不受词条影响、普通生物" oninput="renderCard()">
+              </div>
+              <div class="field-row">
+                <div class="field"><label>HP</label><input type="number" id="fHp" value="35" oninput="renderCard()"></div>
+                <div class="field"><label>先攻</label><input type="number" id="fInit" value="5" oninput="renderCard()"></div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>物攻减伤</label><input type="number" id="fAtkDef" value="3" oninput="renderCard()"></div>
+                <div class="field"><label>特攻减伤</label><input type="number" id="fSpDef" value="3" oninput="renderCard()"></div>
+              </div>
+              <div class="field">
+                <label>属性（最多选2个）</label>
+                <div class="type-pick" id="typePick"><span class="type-chip">一般</span><span class="type-chip">火</span><span class="type-chip">水</span><span class="type-chip">草</span><span class="type-chip">电</span><span class="type-chip">冰</span><span class="type-chip">格斗</span><span class="type-chip">毒</span><span class="type-chip">地面</span><span class="type-chip">飞行</span><span class="type-chip">超能力</span><span class="type-chip">虫</span><span class="type-chip">岩石</span><span class="type-chip">幽灵</span><span class="type-chip">龙</span><span class="type-chip">恶</span><span class="type-chip">钢</span><span class="type-chip">妖精</span></div>
+              </div>
+              <div class="field">
+                <label>等级 Z</label>
+                <div class="level-pick">
+                  <label class="lv-opt"><input type="radio" name="fLevel" value="0" checked=""><span>Lv.0</span></label>
+                  <label class="lv-opt"><input type="radio" name="fLevel" value="1"><span>Lv.1</span></label>
+                  <label class="lv-opt"><input type="radio" name="fLevel" value="2"><span>Lv.2</span></label>
+                </div>
+                <label class="evolve-check"><input type="checkbox" id="fEvolve"> 有进化型（Lv.2时显示"可进化"标记）</label>
+              </div>
+              <div class="field">
+                <label>特性</label>
+                <div id="abiList"><div class="mrow"><input type="text" class="abiIn" placeholder="特性描述" value="示例特性：性格温和，受到攻击时不会退缩。"><button class="rm" type="button" onclick="this.parentNode.remove();renderCard()">删</button></div></div>
+                <button class="add-btn" type="button" onclick="addAbi()">+ 添加特性</button>
+              </div>
+              <div class="field">
+                <label>技能</label>
+                <div id="moveList"><div class="mrow"><input type="text" class="mvName" placeholder="技能名" value="示例技能"><span style="display:flex;gap:6px"><select class="mvTy"><option value="">属性</option><option value="一般" selected="">一般</option><option value="火">火</option><option value="水">水</option><option value="草">草</option><option value="电">电</option><option value="冰">冰</option><option value="格斗">格斗</option><option value="毒">毒</option><option value="地面">地面</option><option value="飞行">飞行</option><option value="超能力">超能力</option><option value="虫">虫</option><option value="岩石">岩石</option><option value="幽灵">幽灵</option><option value="龙">龙</option><option value="恶">恶</option><option value="钢">钢</option><option value="妖精">妖精</option></select><select class="mvKind"><option value="物攻" selected="">物攻</option><option value="特攻">特攻</option><option value="变化">变化</option></select></span><button class="rm" type="button" onclick="this.parentNode.remove();renderCard()">删</button><input type="text" class="mvDesc" placeholder="效果描述" style="grid-column:1/-1" value="2d6+4伤害"></div></div>
+                <button class="add-btn" type="button" onclick="addMove()">+ 添加技能</button>
+              </div>
+              <div class="preset-ops">
+                <button class="add-btn" type="button" onclick="saveCustom()">保存为预设</button>
+                <button class="add-btn" type="button" onclick="clearCustom()">清空本机预设</button>
+              </div>
+              <p class="preset-note">预设保存在本机浏览器中，其他人看不到你的自定义宝可梦。</p>
+            </div>
+            <div class="card-preview">
+              <div id="cardArea"><div class="poke-card"><div class="pc-head" style="background:linear-gradient(135deg,#6e7484,#6e7484cc)"><div><div class="nm">未命名宝可梦</div><div class="pc-type"><span>无</span></div></div><div class="hp">HP <b>35</b></div></div><div class="pc-body"><div class="pc-row"><div class="pc-cell"><div class="k">物攻减伤</div><div class="v">+3</div></div><div class="pc-cell"><div class="k">特攻减伤</div><div class="v">+3</div></div><div class="pc-cell"><div class="k">先攻</div><div class="v">+5</div></div></div><div class="pc-sec">特 性</div><div class="pc-abi">示例特性：性格温和，受到攻击时不会退缩。</div><div class="pc-sec">技 能</div><div class="pc-abi"><b>示例技能</b>（一般系 · 物攻）：2d6+4伤害</div></div><div class="pc-foot"><span>水静市 · Lv.0</span><span>EC 永恒神选 · 属性卡</span></div></div></div>
+              <div class="card-actions">
+                <button class="nav-btn" onclick="copyCard()">复制卡片文本</button>
+                <button class="nav-btn" onclick="printCard()">打印卡片</button>
+              </div>
+            </div>
+          </div>
+          <div class="folio">二十九 <b>· 27</b></div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button class="nav-btn" id="btnPrev" onclick="go(-1)">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg>上一页
+    </button>
+    <div class="page-dots" id="dots"><button class="dot on" aria-label="第1页"></button><button class="dot" aria-label="第2页"></button><button class="dot" aria-label="第3页"></button><button class="dot" aria-label="第4页"></button><button class="dot" aria-label="第5页"></button><button class="dot" aria-label="第6页"></button><button class="dot" aria-label="第7页"></button><button class="dot" aria-label="第8页"></button><button class="dot" aria-label="第9页"></button><button class="dot" aria-label="第10页"></button><button class="dot" aria-label="第11页"></button><button class="dot" aria-label="第12页"></button><button class="dot" aria-label="第13页"></button><button class="dot" aria-label="第14页"></button><button class="dot" aria-label="第15页"></button><button class="dot" aria-label="第16页"></button><button class="dot" aria-label="第17页"></button><button class="dot" aria-label="第18页"></button><button class="dot" aria-label="第19页"></button><button class="dot" aria-label="第20页"></button><button class="dot" aria-label="第21页"></button><button class="dot" aria-label="第22页"></button><button class="dot" aria-label="第23页"></button><button class="dot" aria-label="第24页"></button><button class="dot" aria-label="第25页"></button><button class="dot" aria-label="第26页"></button><button class="dot" aria-label="第27页"></button><button class="dot" aria-label="第28页"></button><button class="dot" aria-label="第29页"></button><button class="dot" aria-label="第30页"></button></div>
+    <button class="nav-btn" id="btnNext" onclick="go(1)">
+      下一页<svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ============================================================
+   宝可梦属性色板
+   ============================================================ */
+const TYPE_COLORS = {
+  "一般":"#8d8374","火":"#c8452a","水":"#3d6fb4","草":"#4e8c3f","电":"#c9a61f",
+  "冰":"#5a9ca8","格斗":"#9c3a2a","毒":"#7c4a9c","地面":"#a07a3a","飞行":"#7c6aa8",
+  "超能力":"#b04a78","虫":"#7a8c24","岩石":"#8a7a4a","幽灵":"#5c5480","龙":"#5a4a9c",
+  "恶":"#5a4a3c","钢":"#6e7484","妖精":"#c06a88"
+};
+const TYPES = Object.keys(TYPE_COLORS);
+
+/* ============================================================
+   模组宝可梦预设数据（来自 V1.1 附录）
+   ============================================================ */
+const POKEDEX = [
+  /* ---- 游戏厅兑换 ---- */
+  {g:"游戏厅", n:"喵喵", t:"[不受词条影响、普通生物]", hp:35, ty:["一般"], ad:2, sd:3, init:6,
+   abi:["捡拾：战斗结束后有5%概率捡到【金珠】"],
+   mv:[["利爪","一般","物攻","必须进行命中检定，命中+7，2d4+3伤害"],["叫声","一般","变化","目标物攻伤害-1，可叠加，至多-6"],["聚宝功","一般","物攻","必须进行命中检定，命中+7，2d4+3伤害，战斗结束100精灵币"]]},
+  {g:"游戏厅", n:"姆克儿", t:"[不受词条影响、普通生物]", hp:35, ty:["一般","飞行"], ad:2, sd:2, init:4,
+   abi:["锐利目光：不会被降低命中相关效果影响"],
+   mv:[["撞击","一般","物攻","必须进行命中检定，命中+7，2d4+4伤害"],["电光一闪","一般","物攻","2d4+4伤害，训练家可以在每轮开始时消耗1AP指挥该技能"],["翅膀攻击","飞行","物攻","必须进行命中检定，命中+7，2d6+4伤害"],["羽栖","飞行","变化","回复自身一半HP"]]},
+  {g:"游戏厅", n:"小磁怪", t:"[不受词条影响、普通生物]", hp:30, ty:["电","钢"], ad:5, sd:4, init:3,
+   abi:["磁力：钢系目标无法主动离场"],
+   mv:[["电击","电","特攻","必须进行命中检定，命中+8，2d4+6伤害，命中有概率麻痹对手"],["电磁波","电","变化","必须进行命中检定，命中+4，命中后麻痹对手"],["金属音","钢","变化","必须进行命中检定，命中+7，命中后目标特攻减伤-2，可叠加"],["充电","电","变化","自身下一次电系招式伤害骰提升一级"]]},
+  {g:"游戏厅", n:"长尾怪手", t:"[不受词条影响、普通生物]", hp:40, ty:["一般"], ad:4, sd:4, init:5,
+   abi:["捡拾：战斗结束后有5%概率捡到【金珠】"],
+   mv:[["抓","一般","物攻","必须进行命中检定，命中+6，2d4+5伤害"],["连续抓","一般","物攻","必须进行命中检定，命中+7，2+5伤害，攻击1d4+1次"],["挠痒","一般","变化","目标物攻减伤-1，可叠加，至多-6"],["高速星星","一般","特攻","2d6+3伤害，必定会命中"]]},
+  {g:"游戏厅", n:"凯西", t:"[不受词条影响、稀有生物]", hp:30, ty:["超能力"], ad:2, sd:4, init:6,
+   abi:["同步：受到异常状态时，施加相同异常给攻击者"],
+   mv:[["念力","超能力","特攻","必须进行命中检定，命中+7，2d4+7伤害，命中有概率造成混乱"],["反射盾","超能力","变化","全队物理伤害减伤+2"],["光墙","超能力","变化","全队特殊伤害减伤+2"]]},
+  {g:"游戏厅", n:"3D龙", t:"[不受词条影响、稀有生物]", hp:40, ty:["一般"], ad:5, sd:5, init:3,
+   abi:["下载：提升自身物攻或特攻加值（已计入）"],
+   mv:[["变圆","一般","变化","自身物攻减伤+1，可叠加，至多+6"],["撞击","一般","物攻","必须进行命中检定，命中+8，2d4+4伤害"],["电磁炮","电","特攻","必须进行命中检定，命中+6，2d10+6伤害"]]},
+  {g:"游戏厅", n:"圆陆鲨", t:"[不受词条影响、史诗生物]", hp:40, ty:["龙","地面"], ad:4, sd:4, init:3,
+   abi:["沙隐：沙暴环境下闪避提升"],
+   mv:[["咬住","恶","物攻","必须进行命中检定，命中+8，2d6+5伤害"],["龙息","龙","特攻","必须进行命中检定，命中+7，2d8+3伤害，命中有概率麻痹对手"],["挖地洞","地面","物攻","2d10+5伤害，钻地蓄力一回合（无法被选为攻击目标），下一回合攻击"],["劈开","一般","物攻","必须进行命中检定，命中+6，[致命19]，2d6+5伤害"]]},
+
+  /* ---- 敌人 ---- */
+  {g:"敌人", n:"阿柏怪", t:"[不受词条影响、普通生物]", hp:45, ty:["毒"], ad:6, sd:6, init:7,
+   abi:["威吓：在场时使敌方生物物攻造成伤害-1"],
+   mv:[["毒牙","毒","物攻","2d6+7伤害，目标还会陷入[中毒3]"],["咬碎","恶","物攻","2d8+7伤害，目标还会陷入[恐慌]至其下回合结束"],["毒爆弹","毒","特攻","2d10+6伤害，目标还会陷入[中毒3]"],["地震","地面","物攻","2d10+7伤害。"]]},
+  {g:"敌人", n:"瓦斯弹", t:"[不受词条影响、普通生物]", hp:35, ty:["毒"], ad:6, sd:5, init:3,
+   abi:["飘浮：免疫地面系招式"],
+   mv:[["毒瓦斯","毒","变化","必须进行命中检定，命中+7，使目标陷入[中毒10]。"],["泥浆喷射","地面","特攻","必须进行命中检定，命中+8，2d6+5伤害，还会使目标先攻立即-5。"],["毒爆弹","毒","特攻","2d10+5伤害，还会使目标陷入[中毒3]"],["自爆","一般","物攻","20+3伤害，自身HP降至0"]]},
+  {g:"敌人", n:"双弹瓦斯", t:"[不受词条影响、精英生物]", hp:50, ty:["毒"], ad:9, sd:6, init:5,
+   abi:["飘浮：免疫地面系招式"],
+   mv:[["毒瓦斯","毒","变化","必须进行命中检定，命中+7，使目标陷入[中毒10]。"],["泥浆喷射","地面","特攻","必须进行命中检定，命中+8，2d6+7伤害，还会使目标先攻立即-5"],["毒爆弹","毒","特攻","2d10+7伤害，还会使目标陷入[中毒10]。"],["大爆炸","一般","物攻","24+8伤害，自身HP降至0。"]]}
+];
+
+/* ============================================================
+   附录渲染：宝可梦数据 → 折叠条目
+   ============================================================ */
+function monCardHTML(m){
+  var ty = m.ty.join(" / ");
+  var mv = m.mv.map(function(x){
+    return "<div class=\"pc-abi\"><b>" + x[0] + "</b>（" + x[1] + "系 · " + x[2] + "）：" + x[3] + "</div>";
+  }).join("");
+  var ab = m.abi.map(function(a){ return "<div class=\"pc-abi\"><b>特性：</b>" + a + "</div>"; }).join("");
+  return "<div class=\"entry\" open><summary>" + m.n + " <span class=\"tag normal\">" + m.g + "</span></summary><div class=\"body\">" +
+    "<p><b>HP：</b>" + m.hp + "　<b>[</b>" + ty + "<b>系]</b>　<b>物攻减伤+</b>" + m.ad + "　<b>特攻减伤+</b>" + m.sd + "　<b>先攻+</b>" + m.init + "</p>" +
+    "<div class=\"lab\">特性</div>" + ab +
+    "<div class=\"lab\">技能</div>" + mv +
+    "</div></div>";
+}
+function renderMons(){
+  var g = document.getElementById("monGame");
+  var e = document.getElementById("monEnemy");
+  if(g) g.innerHTML = POKEDEX.filter(function(m){return m.g==="游戏厅"}).map(monCardHTML).join("");
+  if(e) e.innerHTML = POKEDEX.filter(function(m){return m.g==="敌人"}).map(monCardHTML).join("");
+}
+
+/* ============================================================
+   翻页导航
+   ============================================================ */
+var pages = Array.prototype.slice.call(document.querySelectorAll(".page"));
+var cur = 0;
+var wrap = document.getElementById("pageWrap");
+var dotsBox = document.getElementById("dots");
+
+function fitHeight(){
+  var leaf = pages[cur].querySelector(".leaf");
+  var h = leaf.offsetHeight;
+  /* 计算可视区域余量：视口 - 顶栏 - 底栏 - 页面上下留白，保证每页至少撑满一屏 */
+  var topbar = document.querySelector(".book-topbar").offsetHeight || 0;
+  var nav = document.querySelector(".page-nav").offsetHeight || 0;
+  var avail = Math.max(window.innerHeight - topbar - nav - 120, 300);
+  var th = Math.max(h + 2, avail);
+  wrap.style.height = th + "px";
+  /* 限制滚动范围：滚到内容底部即止，不露出下方空白 */
+  var total = document.body.scrollHeight;
+  var maxScroll = total - window.innerHeight;
+  if(window.scrollY > maxScroll){
+    window.scrollTo({top:maxScroll, behavior:"auto"});
+  }
+}
+
+function renderDots(){
+  dotsBox.innerHTML = "";
+  pages.forEach(function(p,i){
+    var d = document.createElement("button");
+    d.className = "dot" + (i===cur ? " on" : "") + (p.dataset.chap==="1" ? " chap" : "");
+    d.setAttribute("aria-label","第"+(i+1)+"页");
+    d.onclick = function(){ goTo(i); };
+    dotsBox.appendChild(d);
+  });
+}
+
+function setActive(from, to, dir){
+  var f = pages[from], t = pages[to];
+  f.classList.remove("active","anim-left","anim-right");
+  t.classList.remove("anim-left","anim-right");
+  if(dir < 0) t.classList.add("anim-left");
+  else if(dir > 0) t.classList.add("anim-right");
+  t.classList.add("active");
+}
+
+function goTo(i){
+  if(i<0 || i>=pages.length || i===cur) return;
+  var dir = i>cur ? 1 : -1;
+  setActive(cur, i, dir);
+  cur = i;
+  renderDots();
+  fitHeight();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function go(d){
+  goTo(cur + d);
+}
+
+/* 目录 */
+function toggleMenu(){
+  var curPage = cur;
+  document.getElementById("btnMenu").blur();
+  goTo(1); /* 目录页为第 2 页 */
+}
+function buildToc(){
+  var list = document.getElementById("tocList");
+  if(!list) return;
+  list.innerHTML = "";
+
+  /* 一级 → 二级 树形大纲（数字为 .page 索引，与翻页一致） */
+  var TOC = [
+    { t:"一、开始之前声明", sub:[ { t:"开始之前声明", p:2 } ] },
+    { t:"二、故事的核心与走势", sub:[ { t:"故事的核心与走势", p:3 }, { t:"移动时间", p:4 } ] },
+    { t:"三、模组的机制", sub:[ { t:"模组机制", p:5 } ] },
+    { t:"四、模组内容", sub:[
+        { t:"任务", p:6 },
+        { t:"导入", p:7 },
+        { t:"宝可梦中心", p:8 },
+        { t:"水静酒店", p:9 },
+        { t:"海边步道", p:10 },
+        { t:"海港码头", p:11 },
+        { t:"百货商场", p:12 },
+        { t:"游戏厅", p:13 },
+        { t:"美术馆", p:14 },
+        { t:"体育场（赛前）", p:15 },
+        { t:"夜间酒店事件", p:16 },
+        { t:"大师赛初赛", p:17 },
+        { t:"复赛·忆海仪启动", p:18 },
+        { t:"火箭队介入", p:19 },
+        { t:"最后的守卫", p:20 },
+        { t:"完美结局", p:21 },
+        { t:"普通结局", p:22 }
+    ]},
+    { t:"五、结束世界", sub:[ { t:"结束世界", p:23 } ] },
+    { t:"六、附录", sub:[
+        { t:"物品·百货大楼", p:24 },
+        { t:"物品·其他", p:25 },
+        { t:"怪物·火箭队与安保", p:26 },
+        { t:"宝可梦·游戏厅兑换", p:27 },
+        { t:"宝可梦·敌人", p:28 },
+        { t:"宝可梦属性卡生成器", p:29 }
+    ]}
+  ];
+
+  function l2(sub){
+    var li = document.createElement("li");
+    var a = document.createElement("a");
+    a.href = "#"; a.className = "toc-l2";
+    var tt = document.createElement("span"); tt.className="tt"; tt.textContent = sub.t;
+    var pg2 = document.createElement("span"); pg2.className="pg"; pg2.textContent = "· " + (sub.p+1);
+    a.appendChild(tt); a.appendChild(pg2);
+    a.onclick = function(ev){ ev.preventDefault(); goTo(sub.p); };
+    li.appendChild(a);
+    if(sub.sub){
+      var ul = document.createElement("ul"); ul.className="toc-sub-l3";
+      sub.sub.forEach(function(s3){
+        var li3 = document.createElement("li");
+        var a3 = document.createElement("a");
+        a3.href = "#"; a3.className = "toc-l3";
+        var tt3 = document.createElement("span"); tt3.className="tt"; tt3.textContent = s3.t;
+        var pg3 = document.createElement("span"); pg3.className="pg"; pg3.textContent = "· " + (s3.p+1);
+        a3.appendChild(tt3); a3.appendChild(pg3);
+        a3.onclick = function(ev){ ev.preventDefault(); goTo(s3.p); };
+        li3.appendChild(a3); ul.appendChild(li3);
+      });
+      li.appendChild(ul);
+    }
+    return li;
+  }
+
+  TOC.forEach(function(g){
+    var li = document.createElement("li"); li.className = "toc-group";
+    var a = document.createElement("a");
+    a.href = "#"; a.className = "toc-l1";
+    var arr = document.createElement("span"); arr.className="arrow";
+    var tt = document.createElement("span"); tt.className="tt"; tt.textContent = g.t;
+    var pg = document.createElement("span"); pg.className="pg";
+    pg.textContent = "· " + (g.sub[0].p+1);
+    a.appendChild(arr); a.appendChild(tt); a.appendChild(pg);
+    a.onclick = function(ev){
+      ev.preventDefault();
+      li.classList.toggle("open");
+      setTimeout(fitHeight, 260);
+    };
+    li.appendChild(a);
+    var ul = document.createElement("ul"); ul.className="toc-sub";
+    g.sub.forEach(function(s){ ul.appendChild(l2(s)); });
+    li.appendChild(ul);
+    list.appendChild(li);
+  });
+
+  /* 默认展开「四、模组内容」与「六、附录」，方便一眼看到全貌 */
+  list.querySelectorAll(".toc-group").forEach(function(gp, idx){
+    if(idx===3 || idx===5){ gp.classList.add("open"); }
+  });
+}
+
+/* ============================================================
+   属性卡生成器
+   ============================================================ */
+var selTypes = [];
+
+const CUSTOM_KEY = "qyJourney_customMons_v1";
+
+/* 读取自定义宝可梦（localStorage） */
+function getCustomMons(){
+  try{
+    var raw = localStorage.getItem(CUSTOM_KEY);
+    if(!raw) return [];
+    var arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter(function(m){ return m && m.n; }) : [];
+  }catch(e){ return []; }
+}
+function setCustomMons(arr){
+  try{ localStorage.setItem(CUSTOM_KEY, JSON.stringify(arr)); }
+  catch(e){ toast("保存失败：浏览器存储不可用"); }
+}
+
+function fillPreset(){
+  var sel = document.getElementById("presetSel");
+  /* 保留"手动自定义"选项 */
+  sel.innerHTML = '<option value="">—— 手动自定义 ——</option>';
+  var groups = {};
+  POKEDEX.forEach(function(m){
+    (groups[m.g] = groups[m.g] || []).push(m);
+  });
+  Object.keys(groups).forEach(function(gk){
+    var og = document.createElement("optgroup");
+    og.label = gk;
+    groups[gk].forEach(function(m){
+      var o = document.createElement("option");
+      o.value = m.n + "|" + gk;
+      o.textContent = m.n;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  /* 自定义分组 */
+  var custom = getCustomMons();
+  if(custom.length){
+    var og2 = document.createElement("optgroup");
+    og2.label = "自定义";
+    custom.forEach(function(m){
+      var o = document.createElement("option");
+      o.value = m.n + "|" + m.g + "|custom";
+      o.textContent = m.n;
+      og2.appendChild(o);
+    });
+    sel.appendChild(og2);
+  }
+}
+
+/* 保存当前表单为新预设 */
+function saveCustom(){
+  var f = getForm();
+  if(f.name === "未命名宝可梦"){
+    toast("请先填写宝可梦名称再保存");
+    return;
+  }
+  var m = {
+    g:"自定义",
+    n: f.name,
+    t: "[" + (f.tag || "不受词条影响、普通生物") + "]",
+    hp: f.hp, ad: f.ad, sd: f.sd, init: f.init,
+    evolve: !!f.evolve,
+    ty: f.ty.slice(),
+    abi: f.abi.slice(),
+    mv: f.mv.map(function(x){ return [x.n, x.ty, x.kind, x.d]; })
+  };
+  var custom = getCustomMons();
+  var existed = false;
+  custom = custom.filter(function(x){
+    if(x.n === m.n){ existed = true; return false; }
+    return true;
+  });
+  custom.push(m);
+  setCustomMons(custom);
+  fillPreset();
+  var sel = document.getElementById("presetSel");
+  sel.value = m.n + "|自定义|custom";
+  toast(existed ? "已更新预设：" + m.n : "已保存预设：" + m.n);
+  fitHeight();
+}
+
+/* 清空本机自定义预设 */
+function clearCustom(){
+  var custom = getCustomMons();
+  if(!custom.length){ toast("本机没有已保存的预设"); return; }
+  if(!window.confirm("确定清空本机保存的 " + custom.length + " 只自定义宝可梦？")) return;
+  setCustomMons([]);
+  fillPreset();
+  toast("已清空本机预设");
+  fitHeight();
+}
+
+function renderTypePick(){
+  var box = document.getElementById("typePick");
+  box.innerHTML = "";
+  TYPES.forEach(function(t){
+    var c = document.createElement("span");
+    c.className = "type-chip" + (selTypes.indexOf(t)>=0 ? " sel" : "");
+    c.textContent = t;
+    c.style.background = (selTypes.indexOf(t)>=0 ? TYPE_COLORS[t] : "");
+    c.style.borderColor = (selTypes.indexOf(t)>=0 ? TYPE_COLORS[t] : "");
+    c.onclick = function(){
+      var i = selTypes.indexOf(t);
+      if(i>=0) selTypes.splice(i,1);
+      else if(selTypes.length<2) selTypes.push(t);
+      renderTypePick();
+      renderCard();
+    };
+    box.appendChild(c);
+  });
+}
+
+function addAbi(text){
+  var box = document.getElementById("abiList");
+  var row = document.createElement("div");
+  row.className = "mrow";
+  row.innerHTML = "<input type=\"text\" class=\"abiIn\" placeholder=\"特性描述\" value=\"" + (text||"") + "\">" +
+    "<button class=\"rm\" type=\"button\" onclick=\"this.parentNode.remove();renderCard()\">删</button>";
+  box.appendChild(row);
+  row.querySelector("input").addEventListener("input", renderCard);
+  renderCard();
+}
+
+function addMove(m){
+  m = m || {};
+  var box = document.getElementById("moveList");
+  var row = document.createElement("div");
+  row.className = "mrow";
+  var tyOpts = ["","一般","火","水","草","电","冰","格斗","毒","地面","飞行","超能力","虫","岩石","幽灵","龙","恶","钢","妖精"].map(function(t){
+    return "<option value=\""+t+"\""+(t===(m.ty||"")?" selected":"")+">"+(t||"属性")+"</option>";
+  }).join("");
+  var kindOpts = ["物攻","特攻","变化"].map(function(k){
+    return "<option value=\""+k+"\""+(k===(m.kind||"")?" selected":"")+">"+k+"</option>";
+  }).join("");
+  row.innerHTML =
+    "<input type=\"text\" class=\"mvName\" placeholder=\"技能名\" value=\""+(m.n||"")+"\">" +
+    "<span style=\"display:flex;gap:6px\"><select class=\"mvTy\">"+tyOpts+"</select><select class=\"mvKind\">"+kindOpts+"</select></span>" +
+    "<button class=\"rm\" type=\"button\" onclick=\"this.parentNode.remove();renderCard()\">删</button>" +
+    "<input type=\"text\" class=\"mvDesc\" placeholder=\"效果描述\" style=\"grid-column:1/-1\" value=\""+(m.d||"")+"\">";
+  box.appendChild(row);
+  row.querySelectorAll("select").forEach(function(s){ s.addEventListener("change", renderCard); });
+  row.querySelector(".mvDesc").addEventListener("input", renderCard);
+  row.querySelector(".mvName").addEventListener("input", renderCard);
+  renderCard();
+}
+
+function loadPreset(val){
+  if(!val) return;
+  var parts = val.split("|");
+  var m = null;
+  if(parts[2] === "custom"){
+    getCustomMons().forEach(function(x){ if(x.n===parts[0] && x.g===parts[1]) m = x; });
+  } else {
+    POKEDEX.forEach(function(x){ if(x.n===parts[0] && x.g===parts[1]) m = x; });
+  }
+  if(!m) return;
+  document.getElementById("fName").value = m.n;
+  document.getElementById("fTag").value = m.t.replace(/[\[\]]/g,"");
+  document.getElementById("fHp").value = m.hp;
+  document.getElementById("fInit").value = m.init;
+  document.getElementById("fAtkDef").value = m.ad;
+  document.getElementById("fSpDef").value = m.sd;
+  document.getElementById("fEvolve").checked = !!m.evolve;
+  selTypes = m.ty.slice(0,2);
+  renderTypePick();
+  var ab = document.getElementById("abiList"); ab.innerHTML = "";
+  m.abi.forEach(function(a){ addAbi(a); });
+  var mv = document.getElementById("moveList"); mv.innerHTML = "";
+  m.mv.forEach(function(x){ addMove({n:x[0], ty:x[1], kind:x[2], d:x[3]}); });
+  renderCard();
+}
+
+function getForm(){
+  var name = document.getElementById("fName").value.trim() || "未命名宝可梦";
+  var tag = document.getElementById("fTag").value.trim();
+  var hp = parseInt(document.getElementById("fHp").value,10) || 35;
+  var init = parseInt(document.getElementById("fInit").value,10) || 0;
+  var ad = parseInt(document.getElementById("fAtkDef").value,10) || 0;
+  var sd = parseInt(document.getElementById("fSpDef").value,10) || 0;
+  var level = 0;
+  var lvRadio = document.querySelector('input[name="fLevel"]:checked');
+  if(lvRadio) level = parseInt(lvRadio.value,10) || 0;
+  var evolve = document.getElementById("fEvolve").checked;
+  var abi = Array.prototype.map.call(document.querySelectorAll("#abiList .abiIn"), function(i){ return i.value.trim(); }).filter(Boolean);
+  var mv = Array.prototype.map.call(document.querySelectorAll("#moveList .mrow"), function(r){
+    return {
+      n: r.querySelector(".mvName").value.trim(),
+      ty: r.querySelector(".mvTy").value,
+      kind: r.querySelector(".mvKind").value,
+      d: r.querySelector(".mvDesc").value.trim()
+    };
+  }).filter(function(x){ return x.n || x.d; });
+  return {name:name, tag:tag, hp:hp, init:init, ad:ad, sd:sd, level:level, evolve:evolve, ty:selTypes.slice(), abi:abi, mv:mv};
+}
+
+/* 伤害加值：AdB+C 或 A+C，把 C 加上 2Z */
+function scaleDamage(desc, Z){
+  if(!Z || !desc) return desc || "";
+  var bonus = 2*Z;
+  return String(desc).replace(/(\d+)d(\d+)(?:\+(\d+))?|(\d+)\+(\d+)/g, function(m, a, b, c, d2, e2){
+    if(a !== undefined){
+      var plus = (parseInt(c||"0",10) + bonus);
+      return a + "d" + b + "+" + plus;
+    } else {
+      return d2 + "+" + (parseInt(e2,10) + bonus);
+    }
+  });
+}
+
+function renderCard(){
+  var f = getForm();
+  var Z = f.level || 0;
+  var showHp = f.hp + 5*Z;
+  var showInit = f.init + Z;
+  var showAd = f.ad + Z;
+  var showSd = f.sd + Z;
+  var area = document.getElementById("cardArea");
+  var main = f.ty.length ? TYPE_COLORS[f.ty[0]] : "#6e7484";
+  var evolveBadge = (Z === 2 && f.evolve) ? '<div class="pc-evolve">可进化</div>' : "";
+  var head = "<div class=\"pc-head\" style=\"background:linear-gradient(135deg," + main + "," + main + "cc)\">" +
+    evolveBadge +
+    "<div><div class=\"nm\">" + esc(f.name) + "</div>" +
+    "<div class=\"pc-type\">" + (f.ty.length? f.ty.map(function(t){return "<span>"+t+"</span>";}).join("") : "<span>无</span>") + "</div></div>" +
+    "<div class=\"hp\">HP <b>" + showHp + "</b>" + (Z? '<small style="font-size:11px;opacity:.85">（' + f.hp + "+" + (5*Z) + "）</small>" : "") + "</div></div>";
+  var body = "<div class=\"pc-body\">" +
+    "<div class=\"pc-row\"><div class=\"pc-cell\"><div class=\"k\">物攻减伤</div><div class=\"v\">+" + showAd + (Z? '<small> (+' + f.ad + '+' + Z + ')</small>':'') + "</div></div>" +
+    "<div class=\"pc-cell\"><div class=\"k\">特攻减伤</div><div class=\"v\">+" + showSd + (Z? '<small> (+' + f.sd + '+' + Z + ')</small>':'') + "</div></div>" +
+    "<div class=\"pc-cell\"><div class=\"k\">先攻</div><div class=\"v\">+" + showInit + (Z? '<small> (+' + f.init + '+' + Z + ')</small>':'') + "</div></div></div>";
+  if(f.tag) body += "<div class=\"pc-tag\">" + esc(f.tag) + "</div>";
+  if(f.abi.length){ body += "<div class=\"pc-sec\">特 性</div>" + f.abi.map(function(a){ return "<div class=\"pc-abi\">" + esc(a) + "</div>"; }).join(""); }
+  if(f.mv.length){
+    body += "<div class=\"pc-sec\">技 能" + (Z? "（伤害已 +" + (2*Z) + "）" : "") + "</div>" + f.mv.map(function(x){
+      var d = scaleDamage(x.d, Z);
+      return "<div class=\"pc-abi\"><b>" + esc(x.n||"技能") + "</b>（" + x.ty + "系 · " + x.kind + "）：" + esc(d||"") + "</div>";
+    }).join("");
+  }
+  body += "</div>";
+  var foot = "<div class=\"pc-foot\"><span>水静市 · " + (Z? "Lv."+Z : "Lv.0") + "</span><span>EC 永恒神选 · 属性卡</span></div>";
+  area.innerHTML = "<div class=\"poke-card\">" + head + body + foot + "</div>";
+}
+
+function esc(s){
+  return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function cardText(){
+  var f = getForm();
+  var Z = f.level || 0;
+  var L = [];
+  L.push("【" + f.name + "】");
+  L.push("[" + (f.tag||"不受词条影响、普通生物") + "]");
+  L.push("HP：" + (f.hp + 5*Z) + (Z? "（" + f.hp + "+" + 5*Z + "）" : ""));
+  L.push("[" + (f.ty.join("/")||"一般") + "系]");
+  L.push("[物攻减伤+" + (f.ad + Z) + "，特攻减伤+" + (f.sd + Z) + "]");
+  L.push("先攻+" + (f.init + Z));
+  if(Z) L.push("等级：" + Z + "级");
+  if(Z === 2 && f.evolve) L.push("【可进化】");
+  L.push("特性");
+  f.abi.forEach(function(a){ L.push(a); });
+  L.push("技能");
+  f.mv.forEach(function(x){
+    L.push(x.n + "（" + x.ty + "系，" + x.kind + "）：" + scaleDamage(x.d, Z));
+  });
+  return L.join("\n");
+}
+
+function copyCard(){
+  var t = cardText();
+  var done = function(){ toast("已复制为模组文本格式"); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(done, function(){ fallbackCopy(t); done(); });
+  } else { fallbackCopy(t); done(); }
+}
+function fallbackCopy(t){
+  var ta = document.createElement("textarea");
+  ta.value = t; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta);
+}
+function printCard(){
+  var area = document.getElementById("cardArea").innerHTML;
+  var w = window.open("", "_blank");
+  if(!w){ toast("浏览器拦截了打印窗口，请允许弹窗"); return; }
+  w.document.write("<!DOCTYPE html><html lang=\"zh-CN\"><head><meta charset=\"UTF-8\"><title>宝可梦属性卡</title><style>body{font-family:'Noto Sans SC','PingFang SC',sans-serif;background:#fff;display:flex;justify-content:center;padding:40px}.poke-card{width:360px}</style></head><body>" + area + "</body></html>");
+  w.document.close();
+  w.focus();
+  setTimeout(function(){ w.print(); }, 300);
+}
+
+/* toast */
+var toastTimer = null;
+function toast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+}
+
+/* ============================================================
+   物品一键复制（还原为原模组文本格式）
+   ============================================================ */
+function parseFields(p){
+  /* 解析一个 <p>：<b>字段：</b>值　　<b>字段：</b>值 ... */
+  var out = [];
+  var cur = null;
+  p.childNodes.forEach(function(n){
+    if(n.nodeType===1 && n.tagName==="B"){
+      cur = { k:(n.textContent||"").replace(/[：:]/g,"").trim(), v:"" };
+      out.push(cur);
+    } else if(n.nodeType===3 && cur){
+      cur.v += n.textContent;
+    }
+  });
+  out.forEach(function(o){ o.v = o.v.replace(/[\s　]+/g," ").trim(); });
+  return out;
+}
+function itemText(entry){
+  var sum = entry.querySelector("summary");
+  /* 标题取 summary 第一个文本节点（排除注入的按钮文字） */
+  var title = "";
+  sum.childNodes.forEach(function(n){
+    if(n.nodeType===3 && n.textContent.trim()){ title = n.textContent.trim(); }
+  });
+  if(!title) title = sum.textContent.replace(/复制/g,"").trim();
+  var titles = title.split("/").map(function(t){ return t.trim(); }).filter(Boolean);
+
+  var body = entry.querySelector(".body");
+  var lines = [];
+  var lv="", price="", type="", effect="", italic="";
+  body.querySelectorAll("p").forEach(function(p){
+    var fs = parseFields(p);
+    if(!fs.length){
+      var t = p.textContent.trim();
+      if(t) lines.push({raw:t});
+      return;
+    }
+    fs.forEach(function(f){
+      var k = f.k;
+      if(k.indexOf("等级")>=0) lv = f.v;
+      else if(k.indexOf("价格")>=0 || k==="价") price = f.v;
+      else if(k.indexOf("类型")>=0) type = f.v;
+      else if(k.indexOf("效果")>=0) effect = f.v;
+      else if(k.indexOf("斜体")>=0) italic = f.v;
+      else lines.push({raw:(k + "：" + f.v)});
+    });
+  });
+
+  var blocks = [];
+  titles.forEach(function(t, idx){
+    var b = [];
+    b.push(t);
+    if(lv) b.push("物品等级：" + lv);
+    if(price) b.push("物品价格：" + price);
+    if(type) b.push("物品类型：" + type);
+    if(effect){
+      if(titles.length>1 && idx>0){
+        b.push("物品效果：" + effect);
+      } else {
+        b.push("物品效果：" + effect);
+      }
+    }
+    if(italic) b.push("斜体描述：" + italic);
+    lines.forEach(function(l){ b.push(l.raw); });
+    blocks.push(b.join("\n"));
+  });
+  return blocks.join("\n\n");
+}
+function initItemCopy(){
+  [24, 25].forEach(function(pi){
+    var sec = pages[pi];
+    if(!sec) return;
+    sec.querySelectorAll(".entry").forEach(function(en){
+      if(en.querySelector(".cpy-btn")) return;
+      var sum = en.querySelector("summary");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cpy-btn";
+      btn.textContent = "复制";
+      btn.onclick = function(ev){
+        ev.preventDefault();
+        ev.stopPropagation(); /* 避免触发 summary 展开/收起 */
+        var t = itemText(en);
+        var done = function(){ toast("已复制 · " + (en.querySelector("summary").textContent.replace(/复制/g,"").trim())); };
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(t).then(done, function(){ fallbackCopy(t); done(); });
+        } else { fallbackCopy(t); done(); }
+      };
+      sum.appendChild(btn);
+    });
+  });
+}
+
+/* ============================================================
+   初始化
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", function(){
+  buildToc();
+  renderDots();
+  renderMons();
+  fillPreset();
+  renderTypePick();
+  addAbi("示例特性：性格温和，受到攻击时不会退缩。");
+  addMove({n:"示例技能", ty:"一般", kind:"物攻", d:"2d6+4伤害"});
+  document.querySelectorAll('input[name="fLevel"]').forEach(function(r){
+    r.addEventListener("change", renderCard);
+  });
+  document.getElementById("fEvolve").addEventListener("change", renderCard);
+  initItemCopy();
+  fitHeight();
+  window.addEventListener("resize", fitHeight);
+  document.addEventListener("keydown", function(e){
+    if(e.key==="ArrowRight"){ go(1); }
+    else if(e.key==="ArrowLeft"){ go(-1); }
+  });
+});
+</script>
+
+</body></html>
