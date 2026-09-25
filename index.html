@@ -1,9 +1,96 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Field Mods</title></head>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Mods · TRPG 模组库</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  .header { text-align: center; color: white; margin-bottom: 50px; }
+  .header h1 {
+    font-size: 2.8rem; margin-bottom: 10px;
+    text-shadow: 0 2px 20px rgba(102,126,234,0.4); letter-spacing: 2px;
+  }
+  .header p { opacity: 0.7; font-size: 1.1rem; }
+  .category { margin-bottom: 48px; }
+  .category-title {
+    display: flex; align-items: center; gap: 12px;
+    color: white; font-size: 1.3rem; font-weight: 600;
+    margin-bottom: 20px; opacity: 0.9;
+  }
+  .category-title::before {
+    content: ''; width: 4px; height: 24px;
+    background: linear-gradient(180deg, #667eea, #764ba2); border-radius: 2px;
+  }
+  .mod-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;
+  }
+  .mod-card {
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+    border-radius: 14px; padding: 24px; text-decoration: none; color: #333;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s; display: block;
+  }
+  .mod-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(102,126,234,0.3);
+  }
+  .mod-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600; margin-bottom: 10px;
+  }
+  .tag-qingyuan { background: #e3f2fd; color: #1976d2; }
+  .tag-jingliu { background: #e8f5e9; color: #388e3c; }
+  .mod-card h2 { font-size: 1.35rem; margin-bottom: 6px; }
+  .mod-card .desc {
+    color: #666; font-size: 0.9rem; line-height: 1.5; margin-bottom: 14px;
+  }
+  .mod-meta { display: flex; gap: 14px; font-size: 0.8rem; color: #999; }
+  .footer {
+    text-align: center; color: white; opacity: 0.4; margin-top: 60px; font-size: 0.85rem;
+  }
+</style>
+</head>
 <body>
-<h1>Field Mods</h1>
-<p><a href="/fieldmods/qingyuan/">青园之旅</a></p>
-<p><a href="/fieldmods/jingliu/">静流之谜</a></p>
+<div class="container">
+  <div class="header">
+    <h1>Field Mods</h1>
+    <p>TRPG 模组库</p>
+  </div>
+
+  <div class="category">
+    <div class="category-title">EC·菲尔德的宝可梦世界</div>
+    <div class="mod-grid">
+      <a href="/fieldmods/qingyuan/" class="mod-card">
+        <span class="mod-tag tag-qingyuan">第一部</span>
+        <h2>青园之旅</h2>
+        <p class="desc">青园野生原野区纪行。</p>
+        <div class="mod-meta">
+          <span>难度：普普</span>
+          <span>时长：8-10h</span>
+        </div>
+      </a>
+
+      <a href="/fieldmods/jingliu/" class="mod-card">
+        <span class="mod-tag tag-jingliu">第二部</span>
+        <h2>静流之谜</h2>
+        <p class="desc">水静市失忆事件调查。</p>
+        <div class="mod-meta">
+          <span>难度：普困</span>
+          <span>时长：10-14h</span>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="footer">Field Mods</div>
+</div>
 </body>
 </html>
