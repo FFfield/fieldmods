@@ -1306,12 +1306,7 @@ var dotsBox = document.getElementById("dots");
 function fitHeight(){
   var leaf = pages[cur].querySelector(".leaf");
   var h = leaf.offsetHeight;
-  /* 计算可视区域余量：视口 - 顶栏 - 底栏 - 页面上下留白，保证每页至少撑满一屏 */
-  var topbar = document.querySelector(".book-topbar").offsetHeight || 0;
-  var nav = document.querySelector(".page-nav").offsetHeight || 0;
-  var avail = Math.max(window.innerHeight - topbar - nav - 120, 300);
-  var th = Math.max(h + 2, avail);
-  wrap.style.height = th + "px";
+  wrap.style.height = h + "px";
   /* 限制滚动范围：滚到内容底部即止，不露出下方空白 */
   var total = document.body.scrollHeight;
   var maxScroll = total - window.innerHeight;
